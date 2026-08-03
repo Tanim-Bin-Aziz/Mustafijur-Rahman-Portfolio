@@ -1,8 +1,9 @@
-# Sophia Laurent — Portfolio
+# Mustafijur Rahman — Portfolio
 
 A premium, fast-loading, mobile-responsive portfolio built with **Next.js 16**, **TypeScript**, **Tailwind CSS**, and **Framer Motion**.
 
 ## Stack
+
 - Next.js 16 (App Router)
 - TypeScript
 - Tailwind CSS
