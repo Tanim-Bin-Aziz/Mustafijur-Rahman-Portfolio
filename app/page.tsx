@@ -14,6 +14,7 @@ import Testimonials from "@/components/Testimonials";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import ProjectsGrid from "@/components/ProjectsGrid";
+import PixelWarpGallery from "@/components/PixelWarpGallery";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -32,6 +33,7 @@ export default function Home() {
         {/* <Services /> */}
         {/* <Projects /> */}
         <ProjectsGrid />
+        <PixelWarpGallery />
         <Certifications />
         <Experience />
         <Testimonials />
