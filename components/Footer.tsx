@@ -12,7 +12,7 @@ export default function Footer() {
     <footer className="border-t border-cream/[0.06] py-10 px-6">
       <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
         <span className="text-cream/30 text-xs font-mono">
-          © {new Date().getFullYear()} Sophia Laurent. All rights reserved.
+          © {new Date().getFullYear()} Mustafijur Rahman. All rights reserved.
         </span>
         <div className="flex items-center gap-5">
           {SOCIALS.map(({ icon: Icon, href, label }) => (

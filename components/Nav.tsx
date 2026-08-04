@@ -6,64 +6,64 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Menu, X, User, ChevronDown, ChevronRight } from "lucide-react";
 
 /* -----------------------------------------------------------
-   Nav data — ekhane e shob link + dropdown + nested submenu
-   define kora, "@/data/portfolio" theke r import lagbe na
-   Portfolios-er jonno
+   Nav data — Home, Portfolio, About, Video, Contact.
+   Portfolio, About, Video-er nijer nijer dropdown ache.
+   Portfolio-r "Academic (Hons)" item-er nijer arekta
+   nested submenu (flyout) ache.
 ----------------------------------------------------------- */
-type SubLink = { label: string; href: string };
-type SubGroup = { label: string; items: SubLink[] };
+type SubLink = { label: string; href: string; items?: SubLink[] }; // items thakle nested flyout hobe
 type NavItem = {
   label: string;
   href: string;
-  groups?: SubGroup[]; // thakle eita dropdown hobe
+  items?: SubLink[]; // thakle eita dropdown hobe
 };
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Home", href: "/" },
   {
-    label: "Portfolios",
-    href: "#portfolios",
-    groups: [
-      {
-        label: "Academic",
-        items: [
-          { label: "Thesis Project", href: "/portfolios/academic/thesis" },
-          { label: "Research Paper", href: "/portfolios/academic/research" },
-          { label: "Coursework", href: "/portfolios/academic/coursework" },
-        ],
-      },
-      {
-        label: "Professional",
-        items: [
-          {
-            label: "Client Work",
-            href: "/portfolios/professional/client-work",
-          },
-          {
-            label: "Case Studies",
-            href: "/portfolios/professional/case-studies",
-          },
-          {
-            label: "Freelance Projects",
-            href: "/portfolios/professional/freelance",
-          },
-        ],
-      },
-      {
-        label: "Magazine",
-        items: [
-          {
-            label: "Editorial Layouts",
-            href: "/portfolios/magazine/editorial",
-          },
-          { label: "Cover Designs", href: "/portfolios/magazine/covers" },
-          { label: "Print Spreads", href: "/portfolios/magazine/spreads" },
-        ],
-      },
+    label: "About",
+    href: "/#about",
+    items: [
+      { label: "Education", href: "/#education" },
+      { label: "Experience", href: "/#experience" },
+      { label: "Certification", href: "/#certification" },
+      { label: "CV", href: "/#cv" },
     ],
   },
-  { label: "Experience", href: "/#experience" },
-  { label: "Certifications", href: "/#certifications" },
+  {
+    label: "Portfolio",
+    href: "/#portfolio",
+    items: [
+      {
+        label: "Academic (Hons)",
+        href: "/portfolio/academic-hons",
+        items: [
+          { label: "Thesis Project", href: "/portfolio/academic-hons/thesis" },
+          {
+            label: "Research Paper",
+            href: "/portfolio/academic-hons/research",
+          },
+          {
+            label: "Coursework",
+            href: "/portfolio/academic-hons/coursework",
+          },
+        ],
+      },
+      { label: "Professional", href: "/portfolio/professional" },
+      { label: "Additional Work", href: "/portfolio/additional-work" },
+      { label: "Gallery", href: "/portfolio/gallery" },
+    ],
+  },
+  {
+    label: "Video",
+    href: "/#video",
+    items: [
+      { label: "Final Collection", href: "/video/final-collection" },
+      { label: "Drapping Final Dress", href: "/video/drapping-final-dress" },
+      { label: "Studio Collection", href: "/video/studio-collection" },
+      { label: "Gallery", href: "/video/gallery" },
+    ],
+  },
   { label: "Contact", href: "/#contact" },
 ];
 
@@ -90,7 +90,6 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Container variant — children stagger kore reveal hobe
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -102,18 +101,15 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
     },
   };
 
-  // Individual item drop-down + fade reveal
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: -18 },
     visible: {
       opacity: 1,
       y: 0,
-      // use cubic bezier array for typing compatibility
       transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
     },
   };
 
-  // hover e open, mouse leave korle ektu delay diye close (jate flyout e move korার somoy close na hoye jay)
   const handleEnter = (label: string) => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     setDesktopDropdown(label);
@@ -158,8 +154,8 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
             <div
               key={item.label}
               className="relative"
-              onMouseEnter={() => item.groups && handleEnter(item.label)}
-              onMouseLeave={() => item.groups && handleLeave()}
+              onMouseEnter={() => item.items && handleEnter(item.label)}
+              onMouseLeave={() => item.items && handleLeave()}
             >
               <motion.a
                 variants={itemVariants}
@@ -167,7 +163,7 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
                 className="group relative flex items-center gap-1 text-sm font-medium tracking-wide text-cream/50 transition-colors duration-300 hover:text-[#8DB355]"
               >
                 {item.label}
-                {item.groups && (
+                {item.items && (
                   <ChevronDown
                     size={14}
                     className={`transition-transform duration-300 ${
@@ -175,12 +171,11 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
                     }`}
                   />
                 )}
-                {/* Underline reveal on hover */}
                 <span className="absolute -bottom-1 left-0 h-[1.5px] w-full origin-left scale-x-0 bg-[#8DB355] transition-transform duration-300 ease-out group-hover:scale-x-100" />
               </motion.a>
 
-              {/* Dropdown: Academic / Professional / Magazine */}
-              {item.groups && (
+              {/* Dropdown */}
+              {item.items && (
                 <AnimatePresence>
                   {desktopDropdown === item.label && (
                     <motion.div
@@ -190,41 +185,51 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
                       transition={{ duration: 0.2 }}
                       className="absolute left-0 top-full mt-3 flex w-56 flex-col rounded-xl border border-cream/10 bg-[#0d0d0cf7] p-2 backdrop-blur-2xl shadow-xl"
                     >
-                      {item.groups.map((group) => (
-                        <div
-                          key={group.label}
-                          className="relative"
-                          onMouseEnter={() => setDesktopSubGroup(group.label)}
-                        >
-                          <div className="flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-sm text-cream/70 transition-colors hover:bg-cream/5 hover:text-[#8DB355]">
-                            {group.label}
-                            <ChevronRight size={14} />
-                          </div>
+                      {item.items.map((sub) =>
+                        sub.items ? (
+                          // Nested flyout item (jemon: Academic (Hons))
+                          <div
+                            key={sub.label}
+                            className="relative"
+                            onMouseEnter={() => setDesktopSubGroup(sub.label)}
+                          >
+                            <div className="flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-sm text-cream/70 transition-colors hover:bg-cream/5 hover:text-[#8DB355]">
+                              {sub.label}
+                              <ChevronRight size={14} />
+                            </div>
 
-                          {/* Nested flyout submenu */}
-                          <AnimatePresence>
-                            {desktopSubGroup === group.label && (
-                              <motion.div
-                                initial={{ opacity: 0, x: 8 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 8 }}
-                                transition={{ duration: 0.2 }}
-                                className="absolute left-full top-0 ml-2 flex w-56 flex-col rounded-xl border border-cream/10 bg-[#0d0d0cf7] p-2 backdrop-blur-2xl shadow-xl"
-                              >
-                                {group.items.map((sub) => (
-                                  <a
-                                    key={sub.label}
-                                    href={sub.href}
-                                    className="rounded-lg px-3 py-2.5 text-sm text-cream/60 transition-colors hover:bg-cream/5 hover:text-[#8DB355]"
-                                  >
-                                    {sub.label}
-                                  </a>
-                                ))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      ))}
+                            <AnimatePresence>
+                              {desktopSubGroup === sub.label && (
+                                <motion.div
+                                  initial={{ opacity: 0, x: 8 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  exit={{ opacity: 0, x: 8 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="absolute left-full top-0 ml-2 flex w-56 flex-col rounded-xl border border-cream/10 bg-[#0d0d0cf7] p-2 backdrop-blur-2xl shadow-xl"
+                                >
+                                  {sub.items.map((nested) => (
+                                    <a
+                                      key={nested.label}
+                                      href={nested.href}
+                                      className="rounded-lg px-3 py-2.5 text-sm text-cream/60 transition-colors hover:bg-cream/5 hover:text-[#8DB355]"
+                                    >
+                                      {nested.label}
+                                    </a>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        ) : (
+                          <a
+                            key={sub.label}
+                            href={sub.href}
+                            className="rounded-lg px-3 py-2.5 text-sm text-cream/70 transition-colors hover:bg-cream/5 hover:text-[#8DB355]"
+                          >
+                            {sub.label}
+                          </a>
+                        ),
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -266,7 +271,7 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
           >
             <div className="flex max-h-[70vh] flex-col overflow-y-auto px-6 py-5">
               {NAV_ITEMS.map((item) =>
-                item.groups ? (
+                item.items ? (
                   <div
                     key={item.label}
                     className="border-b border-cream/5 last:border-0"
@@ -297,51 +302,63 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden pl-3 pb-2"
                         >
-                          {item.groups.map((group) => (
-                            <div key={group.label} className="mb-1">
-                              <button
-                                onClick={() =>
-                                  setMobileSubExpanded((prev) =>
-                                    prev === group.label ? null : group.label,
-                                  )
-                                }
-                                className="flex w-full items-center justify-between py-2 text-sm font-medium text-cream/50 hover:text-[#8DB355]"
-                              >
-                                {group.label}
-                                <ChevronDown
-                                  size={14}
-                                  className={`transition-transform duration-300 ${
-                                    mobileSubExpanded === group.label
-                                      ? "rotate-180"
-                                      : ""
-                                  }`}
-                                />
-                              </button>
+                          {item.items.map((sub) =>
+                            sub.items ? (
+                              // Nested accordion (jemon: Academic (Hons))
+                              <div key={sub.label} className="mb-1">
+                                <button
+                                  onClick={() =>
+                                    setMobileSubExpanded((prev) =>
+                                      prev === sub.label ? null : sub.label,
+                                    )
+                                  }
+                                  className="flex w-full items-center justify-between py-2 text-sm font-medium text-cream/50 hover:text-[#8DB355]"
+                                >
+                                  {sub.label}
+                                  <ChevronDown
+                                    size={14}
+                                    className={`transition-transform duration-300 ${
+                                      mobileSubExpanded === sub.label
+                                        ? "rotate-180"
+                                        : ""
+                                    }`}
+                                  />
+                                </button>
 
-                              <AnimatePresence>
-                                {mobileSubExpanded === group.label && (
-                                  <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="overflow-hidden pl-3"
-                                  >
-                                    {group.items.map((sub) => (
-                                      <a
-                                        key={sub.label}
-                                        href={sub.href}
-                                        onClick={() => setOpen(false)}
-                                        className="block py-2 text-sm text-cream/40 hover:text-[#8DB355]"
-                                      >
-                                        {sub.label}
-                                      </a>
-                                    ))}
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
-                          ))}
+                                <AnimatePresence>
+                                  {mobileSubExpanded === sub.label && (
+                                    <motion.div
+                                      initial={{ opacity: 0, height: 0 }}
+                                      animate={{ opacity: 1, height: "auto" }}
+                                      exit={{ opacity: 0, height: 0 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="overflow-hidden pl-3"
+                                    >
+                                      {sub.items.map((nested) => (
+                                        <a
+                                          key={nested.label}
+                                          href={nested.href}
+                                          onClick={() => setOpen(false)}
+                                          className="block py-2 text-sm text-cream/40 hover:text-[#8DB355]"
+                                        >
+                                          {nested.label}
+                                        </a>
+                                      ))}
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            ) : (
+                              <a
+                                key={sub.label}
+                                href={sub.href}
+                                onClick={() => setOpen(false)}
+                                className="block py-2 text-sm text-cream/50 hover:text-[#8DB355]"
+                              >
+                                {sub.label}
+                              </a>
+                            ),
+                          )}
                         </motion.div>
                       )}
                     </AnimatePresence>
