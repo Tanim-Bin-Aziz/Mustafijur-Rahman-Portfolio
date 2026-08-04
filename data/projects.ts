@@ -24,11 +24,10 @@ export const PROJECTS: Project[] = [
       "This is a three-piece holiday collection that was designed to fit into a storefront's holiday collection for 2025. The main focus was on the printwork, which was all hand-designed using Procreate.",
     pdfSrc: "/files/holiday-vibes/RMG development.pdf",
     previewImages: [
-      "/images/projects/holiday-vibes/featured-1.webp",
-      "/images/projects/holiday-vibes/featured-2.webp",
-      "/images/projects/holiday-vibes/featured-3.webp",
-      "/images/projects/holiday-vibes/featured-4.webp",
-      "/images/projects/holiday-vibes/featured-5.webp",
+      "/images/Swatch/1.png",
+      "/images/Swatch/2.png",
+      "/images/Swatch/3.png",
+      "/images/Swatch/4.png",
     ],
   },
   {
