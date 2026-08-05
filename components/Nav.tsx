@@ -22,41 +22,28 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Home", href: "/" },
   {
     label: "About",
-    href: "/#about",
+    href: "/about",
     items: [
-      { label: "Education", href: "/#education" },
-      { label: "Experience", href: "/#experience" },
-      { label: "Certification", href: "/#certification" },
-      { label: "CV", href: "/#cv" },
+      { label: "Education", href: "/about/education" },
+      { label: "Experience", href: "/about/experience" },
+      { label: "Certification", href: "/about/certification" },
+      { label: "CV", href: "/about/cv" },
     ],
   },
   {
     label: "Portfolio",
     href: "/portfolio",
     items: [
-      {
-        label: "Academic (Hons)",
-        href: "/portfolio/academic-hons",
-        items: [
-          { label: "Thesis Project", href: "/portfolio/academic-hons/thesis" },
-          {
-            label: "Research Paper",
-            href: "/portfolio/academic-hons/research",
-          },
-          {
-            label: "Coursework",
-            href: "/portfolio/academic-hons/coursework",
-          },
-        ],
-      },
-      { label: "Professional", href: "/portfolio/professional" },
-      { label: "Additional Work", href: "/portfolio/additional-work" },
-      { label: "Gallery", href: "/portfolio/gallery" },
+      // slug gula data/projects.ts-er sathe match kore — direct card-e niye jabe
+      { label: "Academic (Hons)", href: "/portfolio/holiday-vibes" },
+      { label: "Professional", href: "/portfolio/urban-essentials" },
+      { label: "Additional Work", href: "/portfolio/coastal-retreat" },
+      { label: "Gallery", href: "/portfolio/Gallery" },
     ],
   },
   {
     label: "Video",
-    href: "/#video",
+    href: "/video",
     items: [
       { label: "Final Collection", href: "/video/final-collection" },
       { label: "Drapping Final Dress", href: "/video/drapping-final-dress" },

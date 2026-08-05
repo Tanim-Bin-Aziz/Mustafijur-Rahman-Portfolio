@@ -5,11 +5,9 @@ import type { Project } from "@/data/projects";
 export default function ProjectCard({ project }: { project: Project }) {
   return (
     <Link
-      href={`/projects/${project.slug}`}
+      href={`/portfolio/${project.slug}`}
       className="group relative block w-full aspect-[16/10]"
     >
-      {/* Piche-r stacked pages — base transform ekhon Tailwind class diye,
-          inline style e na, tai group-hover thik moto override korte parbe */}
       <div
         className="absolute inset-0 overflow-hidden rounded-2xl border border-white/10 origin-bottom-left
         rotate-[4deg] translate-x-1.5 translate-y-1
@@ -55,9 +53,9 @@ export default function ProjectCard({ project }: { project: Project }) {
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0908] via-[#0B0908]/20 to-transparent" />
 
         <div className="absolute bottom-0 left-0 right-0 p-5">
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-[#C89B6A]">
+          {/* <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-[#C89B6A]">
             {project.projectType}
-          </p>
+          </p> */}
 
           <h3 className="font-serif italic text-2xl leading-tight text-[#F4EEE3]">
             {project.title}

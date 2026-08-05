@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { Project } from "@/data/projects";
 import PDFViewerModal from "@/components/PDFViewerModal";
+import Nav from "@/components/Nav";
 
 export default function ProjectDetailClient({
   project,
@@ -22,90 +23,97 @@ export default function ProjectDetailClient({
   const [showFullPdf, setShowFullPdf] = useState(false);
 
   const goToNextProject = () => {
-    window.location.href = `/projects/${nextProject.slug}`;
+    window.location.href = `/portfolio/${nextProject.slug}`;
   };
 
   return (
-    <main className="bg-[#0B0908] text-[#F4EEE3] min-h-screen">
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-20">
-        {/* Hero */}
-        <div className="flex flex-col lg:flex-row justify-between items-start gap-16 mb-16">
-          <div className="flex-1">
-            <p className="font-mono text-[10px] tracking-[0.35em] uppercase text-[#C89B6A] mb-6">
-              {project.projectType}
-            </p>
-            <h1 className="font-serif italic text-6xl md:text-6xl leading-none text-[#F4EEE3]">
-              {project.title}
-            </h1>
+    <>
+      {/* View Full PDF e click korle showFullPdf true hoy — tokhon Nav hide hoye jay */}
+      {!showFullPdf && <Nav />}
+
+      <main className="bg-[#0B0908] text-[#F4EEE3] min-h-screen">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-20">
+          {/* Hero */}
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-16 mb-16">
+            <div className="flex-1">
+              <p className="font-mono text-[10px] tracking-[0.35em] uppercase text-[#C89B6A] mb-6">
+                {project.projectType}
+              </p>
+              <h1 className="font-serif italic text-6xl md:text-6xl leading-none text-[#F4EEE3]">
+                {project.title}
+              </h1>
+            </div>
+
+            <div className="flex-1 max-w-xl lg:pt-8">
+              <p className="text-lg leading-9 text-[#F4EEE3]/70 font-light">
+                {project.description}
+              </p>
+            </div>
           </div>
 
-          <div className="flex-1 max-w-xl lg:pt-8">
-            <p className="text-lg leading-9 text-[#F4EEE3]/70 font-light">
-              {project.description}
-            </p>
+          {/* Project Info */}
+          <div className="flex flex-wrap gap-16 mb-16 border-t border-white/10 pt-10">
+            <div>
+              <dt className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#F4EEE3]/40 mb-2">
+                Project Type
+              </dt>
+              <dd className="text-lg text-[#F4EEE3]/80">
+                {project.projectType}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#F4EEE3]/40 mb-2">
+                Date
+              </dt>
+              <dd className="text-lg text-[#F4EEE3]/80">{project.date}</dd>
+            </div>
+            <div>
+              <dt className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#F4EEE3]/40 mb-2">
+                Location
+              </dt>
+              <dd className="text-lg text-[#F4EEE3]/80">{project.location}</dd>
+            </div>
+          </div>
+
+          {/* Gallery header: View Full PDF (right side) */}
+          <div className="flex items-center justify-between mb-6 border-t border-white/10 pt-8">
+            <h2 className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#F4EEE3]/40">
+              Featured Images
+            </h2>
+            <button
+              onClick={() => setShowFullPdf(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-[#C89B6A]/40 bg-[#C89B6A]/10 px-4 md:px-5 py-2.5 text-sm font-medium text-[#C89B6A] hover:bg-[#C89B6A]/20 transition-colors"
+            >
+              <Maximize2 size={15} />
+              <span>View Full PDF</span>
+            </button>
+          </div>
+
+          {/* Image gallery — grid, click korle zoom view */}
+          <ImageGallery images={project.previewImages} title={project.title} />
+
+          {/* Next project */}
+          <div className="flex items-center justify-end mt-16 pt-8 border-t border-white/10">
+            <button
+              onClick={goToNextProject}
+              className="inline-flex items-center gap-1.5 text-lg text-[#F4EEE3]/70 hover:text-[#C89B6A] transition-colors font-serif italic"
+            >
+              Next project: {nextProject.title} <ArrowRight size={18} />
+            </button>
           </div>
         </div>
 
-        {/* Project Info */}
-        <div className="flex flex-wrap gap-16 mb-16 border-t border-white/10 pt-10">
-          <div>
-            <dt className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#F4EEE3]/40 mb-2">
-              Project Type
-            </dt>
-            <dd className="text-lg text-[#F4EEE3]/80">{project.projectType}</dd>
-          </div>
-          <div>
-            <dt className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#F4EEE3]/40 mb-2">
-              Date
-            </dt>
-            <dd className="text-lg text-[#F4EEE3]/80">{project.date}</dd>
-          </div>
-          <div>
-            <dt className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#F4EEE3]/40 mb-2">
-              Location
-            </dt>
-            <dd className="text-lg text-[#F4EEE3]/80">{project.location}</dd>
-          </div>
-        </div>
-
-        {/* Gallery header: View Full PDF (right side) */}
-        <div className="flex items-center justify-between mb-6 border-t border-white/10 pt-8">
-          <h2 className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#F4EEE3]/40">
-            Featured Images
-          </h2>
-          <button
-            onClick={() => setShowFullPdf(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-[#C89B6A]/40 bg-[#C89B6A]/10 px-4 md:px-5 py-2.5 text-sm font-medium text-[#C89B6A] hover:bg-[#C89B6A]/20 transition-colors"
-          >
-            <Maximize2 size={15} />
-            <span>View Full PDF</span>
-          </button>
-        </div>
-
-        {/* Image gallery — grid, click korle zoom view */}
-        <ImageGallery images={project.previewImages} title={project.title} />
-
-        {/* Next project */}
-        <div className="flex items-center justify-end mt-16 pt-8 border-t border-white/10">
-          <button
-            onClick={goToNextProject}
-            className="inline-flex items-center gap-1.5 text-lg text-[#F4EEE3]/70 hover:text-[#C89B6A] transition-colors font-serif italic"
-          >
-            Next project: {nextProject.title} <ArrowRight size={18} />
-          </button>
-        </div>
-      </div>
-
-      {showFullPdf && (
-        <PDFViewerModal
-          project={project}
-          nextProject={nextProject}
-          onClose={() => setShowFullPdf(false)}
-          onNextProject={goToNextProject}
-          initialMode="full"
-        />
-      )}
-    </main>
+        {showFullPdf && (
+          <PDFViewerModal
+            project={project}
+            nextProject={nextProject}
+            onClose={() => setShowFullPdf(false)}
+            onNextProject={goToNextProject}
+            initialMode="full"
+          />
+        )}
+      </main>
+    </>
   );
 }
 

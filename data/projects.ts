@@ -3,7 +3,7 @@ export interface Project {
   slug: string;
   title: string;
   cover: string;
-  // projectType: string;
+  projectType: string;
   date: string;
   location: string;
   description: string;
@@ -17,7 +17,7 @@ export const PROJECTS: Project[] = [
     slug: "holiday-vibes",
     title: "Academic (Hons)",
     cover: "/files/holiday-vibes/thum1.jpg",
-    // projectType: "Illustrations, Flats, and Print work",
+    projectType: "Illustrations, Flats, and Print work",
     date: "September 2025",
     location: "Fleetwood, BD",
     description:
@@ -35,7 +35,7 @@ export const PROJECTS: Project[] = [
     slug: "urban-essentials",
     title: "Professional",
     cover: "/images/thum2.jpg",
-    // projectType: "Fashion Collection, Tech Pack, Print Design",
+    projectType: "Fashion Collection, Tech Pack, Print Design",
     date: "January 2026",
     location: "Dhaka, BD",
     description:
@@ -53,7 +53,7 @@ export const PROJECTS: Project[] = [
     slug: "coastal-retreat",
     title: "Additional Work",
     cover: "/images/thum3.jpg",
-    // projectType: "Resort Wear, Textile Design, Collection Development",
+    projectType: "Resort Wear, Textile Design, Collection Development",
     date: "May 2026",
     location: "Cox's Bazar, BD",
     description:
@@ -71,7 +71,7 @@ export const PROJECTS: Project[] = [
     slug: "Gallery",
     title: "Gallery",
     cover: "/images/thum4.jpg",
-    // projectType: "Resort Wear, Textile Design, Collection Development",
+    projectType: "Resort Wear, Textile Design, Collection Development",
     date: "May 2026",
     location: "Cox's Bazar, BD",
     description:
