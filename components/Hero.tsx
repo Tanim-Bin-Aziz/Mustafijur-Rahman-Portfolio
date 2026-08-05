@@ -45,7 +45,6 @@ const socialLinks = [
     href: "https://facebook.com/yourusername",
     label: "Facebook",
   },
-  // WhatsApp icon lucide-react e nai, tai custom SVG use korlam niche
 ];
 
 function Hero({ ready = true }: { ready?: boolean }) {
@@ -189,7 +188,7 @@ function Hero({ ready = true }: { ready?: boolean }) {
           preload="metadata"
           className="absolute inset-0 h-full w-full object-cover"
         >
-          <source src="/video/hero.mp4" type="video/mp4" />
+          <source src="/video/hero.webm" type="video/webm" />
         </video>
 
         {/* Dark Overlay — desktop: side gradient, mobile: bottom-only */}
