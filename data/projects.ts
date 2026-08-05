@@ -3,7 +3,7 @@ export interface Project {
   slug: string;
   title: string;
   cover: string;
-  projectType: string;
+  // projectType: string;
   date: string;
   location: string;
   description: string;
@@ -15,9 +15,9 @@ export const PROJECTS: Project[] = [
   {
     id: "holiday-vibes",
     slug: "holiday-vibes",
-    title: "Holiday Vibes",
+    title: "Academic (Hons)",
     cover: "/files/holiday-vibes/thum1.jpg",
-    projectType: "Illustrations, Flats, and Print work",
+    // projectType: "Illustrations, Flats, and Print work",
     date: "September 2025",
     location: "Fleetwood, BD",
     description:
@@ -33,9 +33,9 @@ export const PROJECTS: Project[] = [
   {
     id: "urban-essentials",
     slug: "urban-essentials",
-    title: "Urban Essentials",
+    title: "Professional",
     cover: "/images/thum2.jpg",
-    projectType: "Fashion Collection, Tech Pack, Print Design",
+    // projectType: "Fashion Collection, Tech Pack, Print Design",
     date: "January 2026",
     location: "Dhaka, BD",
     description:
@@ -51,9 +51,27 @@ export const PROJECTS: Project[] = [
   {
     id: "coastal-retreat",
     slug: "coastal-retreat",
-    title: "Coastal Retreat",
+    title: "Additional Work",
     cover: "/images/thum3.jpg",
-    projectType: "Resort Wear, Textile Design, Collection Development",
+    // projectType: "Resort Wear, Textile Design, Collection Development",
+    date: "May 2026",
+    location: "Cox's Bazar, BD",
+    description:
+      "A resort-inspired apparel collection featuring lightweight fabrics, tropical prints, and relaxed silhouettes. The project covers mood boards, print development, garment illustrations, and production-ready documentation.",
+    pdfSrc: "/files/coastal-retreat/collection-book.pdf",
+    previewImages: [
+      "/images/projects/coastal-retreat/featured-1.webp",
+      "/images/projects/coastal-retreat/featured-2.webp",
+      "/images/projects/coastal-retreat/featured-3.webp",
+      "/images/projects/coastal-retreat/featured-4.webp",
+    ],
+  },
+  {
+    id: "Gallery",
+    slug: "Gallery",
+    title: "Gallery",
+    cover: "/images/thum4.jpg",
+    // projectType: "Resort Wear, Textile Design, Collection Development",
     date: "May 2026",
     location: "Cox's Bazar, BD",
     description:

@@ -32,7 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     label: "Portfolio",
-    href: "/#portfolio",
+    href: "/portfolio",
     items: [
       {
         label: "Academic (Hons)",
