@@ -4,7 +4,7 @@ import { FadeUp, Tag } from "./Motion";
 
 export default function ProjectsGrid() {
   return (
-    <section id="projects" className="py-28 px-6 bg-[#120F0E]">
+    <section id="projects" className="py-28 px-6 bg-[##09090a]">
       <div className="max-w-6xl mx-auto">
         <FadeUp>
           <h2 className="font-serif font-black italic text-4xl md:text-6xl tracking-tight mb-16 text-[#F4EEE3]">

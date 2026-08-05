@@ -49,7 +49,7 @@ function WarpCard({ item, index }: { item: GalleryItem; index: number }) {
 
   return (
     <div
-      className="relative w-[210px] overflow-hidden rounded-3xl border border-[#2a2f3a] bg-black cursor-pointer max-[900px]:w-[150px] max-[900px]:!h-[400px] max-[900px]:!mb-0"
+      className="relative w-[210px] overflow-hidden rounded-3xl border border-[#2a2f3a] bg-[##09090a] cursor-pointer max-[900px]:w-[150px] max-[900px]:!h-[400px] max-[900px]:!mb-0"
       style={{
         height: layout.height,
         marginBottom: layout.marginBottom,
@@ -79,7 +79,7 @@ export default function PixelWarpGallery({
   items = DEFAULT_ITEMS,
 }: PixelWarpGalleryProps) {
   return (
-    <section className="bg-black px-6 py-24">
+    <section className="bg-[#09090a] px-6 py-24">
       <div className="mx-auto mb-14 max-w-2xl text-center">
         <h2 className="text-4xl font-bold text-white">Showcase</h2>
 
