@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, MouseEvent, WheelEvent } from "react";
 import Image from "next/image";
 import {
   Search,
@@ -8,10 +8,11 @@ import {
   FolderOpen,
   ArrowUpDown,
   ZoomIn,
+  ZoomOut,
+  RotateCcw,
   X,
   Calendar,
   Menu,
-  ChevronRight,
   ImageIcon,
 } from "lucide-react";
 import { GALLERY_FOLDERS, GALLERY_IMAGES, GalleryImage } from "@/data/gallery";
@@ -23,16 +24,73 @@ export default function ImageGallerySystem() {
   const [activeImage, setActiveImage] = useState<GalleryImage | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // --- Zoom & Pan Dynamic States ---
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  // Reset Zoom function
+  const handleResetZoom = () => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const handleOpenModal = (img: GalleryImage) => {
+    setActiveImage(img);
+    handleResetZoom();
+  };
+
+  const handleCloseModal = () => {
+    setActiveImage(null);
+    handleResetZoom();
+  };
+
+  // Zoom In / Zoom Out Handlers
+  const handleZoomIn = () => setScale((prev) => Math.min(prev + 0.5, 4));
+  const handleZoomOut = () => {
+    setScale((prev) => {
+      const newScale = Math.max(prev - 0.5, 1);
+      if (newScale === 1) setPosition({ x: 0, y: 0 });
+      return newScale;
+    });
+  };
+
+  // Mouse Wheel Zoom
+  const handleWheel = (e: WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      handleZoomIn();
+    } else {
+      handleZoomOut();
+    }
+  };
+
+  // Drag / Pan Handlers
+  const handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
+    if (scale <= 1) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || scale <= 1) return;
+    setPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+
   // Global Filter & Search Logic
   const filteredImages = useMemo(() => {
     return GALLERY_IMAGES.filter((img) => {
-      // Folder check: Search query থাকলে সব ফোল্ডারের এক্সেস পাবে
       const matchesFolder =
         searchQuery.trim() !== "" ||
         selectedFolder === "all" ||
         img.folderId === selectedFolder;
 
-      // Title & Date Search check
       const query = searchQuery.toLowerCase().trim();
       const matchesSearch =
         img.title.toLowerCase().includes(query) || img.date.includes(query);
@@ -42,7 +100,7 @@ export default function ImageGallerySystem() {
       if (sortBy === "newest")
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       if (sortBy === "oldest")
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
+        return new Date(a.date).getTime() - new Date(a.date).getTime();
       return a.title.localeCompare(b.title);
     });
   }, [selectedFolder, searchQuery, sortBy]);
@@ -119,7 +177,7 @@ export default function ImageGallerySystem() {
 
       {/* Main Content Area */}
       <div className="flex-1 w-full space-y-6">
-        {/* Search, Sort & Mobile Sidebar Toggle Bar */}
+        {/* Search & Sort Header Bar */}
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-3 rounded-2xl flex flex-col sm:flex-row gap-3 items-center justify-between shadow-xl">
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
@@ -129,14 +187,13 @@ export default function ImageGallerySystem() {
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Global Search Bar */}
             <div className="relative flex-1 sm:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F4EEE3]/40" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search name or date (YYYY-MM-DD)..."
+                placeholder="Search name or date..."
                 className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm text-[#F4EEE3] placeholder:text-[#F4EEE3]/30 focus:outline-none focus:border-[#8db355]/60 transition-colors"
               />
               {searchQuery && (
@@ -150,7 +207,6 @@ export default function ImageGallerySystem() {
             </div>
           </div>
 
-          {/* Sort Selector */}
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <ArrowUpDown className="w-4 h-4 text-[#8db355]" />
             <select
@@ -171,21 +227,13 @@ export default function ImageGallerySystem() {
           </div>
         </div>
 
-        {/* Global Search Hint Tag */}
-        {searchQuery.trim() !== "" && (
-          <div className="flex items-center justify-between text-xs text-[#8db355] bg-[#8db355]/10 border border-[#8db355]/20 px-4 py-2 rounded-xl">
-            <span>Searching across all folders for "{searchQuery}"</span>
-            <span>{filteredImages.length} results</span>
-          </div>
-        )}
-
-        {/* Image Grid */}
+        {/* Gallery Grid */}
         {filteredImages.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredImages.map((img) => (
               <div
                 key={img.id}
-                onClick={() => setActiveImage(img)}
+                onClick={() => handleOpenModal(img)}
                 className="group relative aspect-square bg-black/40 border border-white/10 rounded-2xl overflow-hidden cursor-pointer backdrop-blur-sm transition-all duration-300 hover:border-[#8db355]/50 hover:shadow-xl hover:shadow-[#8db355]/10"
               >
                 <Image
@@ -197,7 +245,6 @@ export default function ImageGallerySystem() {
                   loading="lazy"
                 />
 
-                {/* Hover Glass Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
                   <div className="flex items-center justify-between text-xs text-[#8db355] mb-1 font-mono">
                     <span className="flex items-center gap-1">
@@ -220,38 +267,90 @@ export default function ImageGallerySystem() {
         )}
       </div>
 
-      {/* Lightbox / Image Zoom Modal */}
+      {/* --- ADVANCED FREE ZOOM LIGHTBOX MODAL --- */}
       {activeImage && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative max-w-4xl w-full max-h-[90vh] bg-white/5 border border-white/10 rounded-3xl overflow-hidden flex flex-col shadow-2xl">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/40">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-6">
+          <div className="relative max-w-5xl w-full h-[85vh] bg-white/5 border border-white/10 rounded-3xl overflow-hidden flex flex-col shadow-2xl">
+            {/* Modal Control Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/60 z-10 backdrop-blur-md">
               <div>
-                <h3 className="text-[#F4EEE3] font-medium">
+                <h3 className="text-[#F4EEE3] font-medium text-sm sm:text-base">
                   {activeImage.title}
                 </h3>
                 <p className="text-xs text-[#8db355] font-mono">
                   {activeImage.date}
                 </p>
               </div>
+
+              {/* Interactive Zoom Toolbar */}
+              <div className="flex items-center gap-1 sm:gap-2 bg-white/10 border border-white/10 rounded-xl p-1">
+                <button
+                  onClick={handleZoomIn}
+                  title="Zoom In"
+                  className="p-1.5 hover:bg-white/20 rounded-lg text-white/80 hover:text-white transition"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+                <span className="text-xs font-mono text-[#8db355] px-1 min-w-[45px] text-center">
+                  {Math.round(scale * 100)}%
+                </span>
+                <button
+                  onClick={handleZoomOut}
+                  title="Zoom Out"
+                  className="p-1.5 hover:bg-white/20 rounded-lg text-white/80 hover:text-white transition"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleResetZoom}
+                  title="Reset Zoom"
+                  className="p-1.5 hover:bg-white/20 rounded-lg text-white/80 hover:text-white transition border-l border-white/10 ml-1 pl-2"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Close Button */}
               <button
-                onClick={() => setActiveImage(null)}
+                onClick={handleCloseModal}
                 className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Image Display */}
-            <div className="relative w-full h-[60vh] sm:h-[70vh] bg-black">
-              <Image
-                src={activeImage.src}
-                alt={activeImage.title}
-                fill
-                quality={95}
-                priority
-                className="object-contain"
-              />
+            {/* Interactive Image Display Container (Wheel & Drag Enabled) */}
+            <div
+              className={`relative flex-1 w-full h-full overflow-hidden bg-black flex items-center justify-center select-none ${
+                scale > 1
+                  ? isDragging
+                    ? "cursor-grabbing"
+                    : "cursor-grab"
+                  : "cursor-default"
+              }`}
+              onWheel={handleWheel}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              <div
+                className="relative w-full h-full transition-transform duration-75 ease-out"
+                style={{
+                  transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                  transformOrigin: "center center",
+                }}
+              >
+                <Image
+                  src={activeImage.src}
+                  alt={activeImage.title}
+                  fill
+                  quality={95}
+                  priority
+                  draggable={false}
+                  className="object-contain pointer-events-none"
+                />
+              </div>
             </div>
           </div>
         </div>
