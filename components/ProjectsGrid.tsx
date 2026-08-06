@@ -1,6 +1,6 @@
 import ProjectCard from "./ProjectCard";
-import { PROJECTS } from "@/data/projects";
-import { FadeUp, Tag } from "./Motion";
+import { CATEGORIES } from "@/data/projects";
+import { FadeUp } from "./Motion";
 
 export default function ProjectsGrid() {
   return (
@@ -12,8 +12,13 @@ export default function ProjectsGrid() {
           </h2>
         </FadeUp>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {PROJECTS.map((p) => (
-            <ProjectCard key={p.id} project={p} />
+          {CATEGORIES.map((c) => (
+            <ProjectCard
+              key={c.id}
+              title={c.title}
+              cover={c.cover}
+              href={`/portfolio/${c.slug}`}
+            />
           ))}
         </div>
       </div>

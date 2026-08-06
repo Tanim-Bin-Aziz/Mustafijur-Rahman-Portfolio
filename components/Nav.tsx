@@ -34,11 +34,12 @@ const NAV_ITEMS: NavItem[] = [
     label: "Portfolio",
     href: "/portfolio",
     items: [
-      // slug gula data/projects.ts-er sathe match kore — direct card-e niye jabe
-      { label: "Academic (Hons)", href: "/portfolio/holiday-vibes" },
-      { label: "Professional", href: "/portfolio/urban-essentials" },
-      { label: "Additional Work", href: "/portfolio/coastal-retreat" },
-      { label: "Gallery", href: "/portfolio/Gallery" },
+      // ekhon category page-e niye jabe (3/4ta project card dekhabe),
+      // direct project detail e na
+      { label: "Academic (Hons)", href: "/portfolio/academic-hons" },
+      { label: "Professional", href: "/portfolio/professional" },
+      { label: "Additional Work", href: "/portfolio/additional-work" },
+      { label: "Gallery", href: "/portfolio/gallery" },
     ],
   },
   {

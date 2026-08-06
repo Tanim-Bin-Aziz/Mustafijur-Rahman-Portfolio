@@ -1,7 +1,7 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ProjectCard from "@/components/ProjectCard";
-import { PROJECTS } from "@/data/projects";
+import { CATEGORIES } from "@/data/projects";
 
 export default function PortfolioIndexPage() {
   return (
@@ -13,8 +13,13 @@ export default function PortfolioIndexPage() {
             The <span className="text-[#8db355]">Portfolio Archive</span>
           </h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {PROJECTS.map((p) => (
-              <ProjectCard key={p.id} project={p} />
+            {CATEGORIES.map((c) => (
+              <ProjectCard
+                key={c.id}
+                title={c.title}
+                cover={c.cover}
+                href={`/portfolio/${c.slug}`}
+              />
             ))}
           </div>
         </div>

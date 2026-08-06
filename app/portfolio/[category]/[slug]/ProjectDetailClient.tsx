@@ -16,14 +16,17 @@ import Nav from "@/components/Nav";
 export default function ProjectDetailClient({
   project,
   nextProject,
+  categorySlug,
 }: {
   project: Project;
   nextProject: Project;
+  categorySlug: string;
 }) {
   const [showFullPdf, setShowFullPdf] = useState(false);
 
+  // shei e category-r moddhe next project-e jabe
   const goToNextProject = () => {
-    window.location.href = `/portfolio/${nextProject.slug}`;
+    window.location.href = `/portfolio/${categorySlug}/${nextProject.slug}`;
   };
 
   return (
