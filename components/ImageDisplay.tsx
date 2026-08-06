@@ -1,12 +1,8 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  type CSSProperties,
-} from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface DisplaySlide {
   src: string;
@@ -20,21 +16,20 @@ interface ImageDisplayProps {
   slides: DisplaySlide[];
   cardWidth?: number;
   cardHeight?: number;
-  radius?: number; // 0-20 scale, boxy -> fully rounded
-  tilt?: number; // Y-axis rotation per step
-  sideTilt?: number; // Z-axis rotation per step
-  gap?: number; // 0-20, spacing between cards
-  opacity?: number; // 0-100, visibility of inactive cards
-  duration?: number; // transition seconds
+  radius?: number;
+  tilt?: number;
+  sideTilt?: number;
+  gap?: number;
+  opacity?: number;
+  duration?: number;
   autoplay?: boolean;
   autoplayDirection?: "leftToRight" | "rightToLeft";
-  autoplayDelay?: number; // seconds each card holds
+  autoplayDelay?: number;
   showTitle?: boolean;
   titleColor?: string;
   titlePosition?: TitleCorner;
 }
 
-// Fixed internals
 const PERSPECTIVE = 1600;
 const SCALE_STEP = 0.16;
 const MAX_VISIBLE = 2;
@@ -59,6 +54,8 @@ export default function ImageDisplay({
 }: ImageDisplayProps) {
   const n = slides.length;
   const [active, setActive] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const isTop = titlePosition === "topLeft" || titlePosition === "topRight";
   const isRight =
@@ -68,43 +65,28 @@ export default function ImageDisplay({
     setActive((a) => Math.max(0, Math.min(n - 1, a)));
   }, [n]);
 
-  // Rapid click/key spam handle korar jonno lock — transition shesh na hoile input block
-  const lockRef = useRef(false);
-  const lock = useCallback(() => {
-    lockRef.current = true;
-    window.setTimeout(
-      () => {
-        lockRef.current = false;
-      },
-      Math.max(50, duration * 1000),
-    );
-  }, [duration]);
-
   const step = useCallback(
     (dir: number) => {
-      if (lockRef.current) return;
-      lock();
       setActive((a) => (((a + dir) % n) + n) % n);
     },
-    [n, lock],
-  );
-
-  const handleCardClick = useCallback(
-    (i: number) => {
-      if (autoplay || lockRef.current) return;
-      lock();
-      setActive((a) => (i === a ? (a + 1) % n : i));
-    },
-    [autoplay, n, lock],
+    [n],
   );
 
   useEffect(() => {
-    if (!autoplay || n < 2) return;
+    if (!autoplay || n < 2 || isHovered || isDragging) return;
     const ms = Math.max(0.3, autoplayDelay) * 1000;
     const dir = autoplayDirection === "leftToRight" ? -1 : 1;
     const id = window.setInterval(() => step(dir), ms);
     return () => window.clearInterval(id);
-  }, [autoplay, autoplayDirection, autoplayDelay, n, step]);
+  }, [
+    autoplay,
+    autoplayDirection,
+    autoplayDelay,
+    n,
+    step,
+    isHovered,
+    isDragging,
+  ]);
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -119,11 +101,25 @@ export default function ImageDisplay({
     [step],
   );
 
+  const handleDragEnd = (
+    _: unknown,
+    info: { offset: { x: number }; velocity: { x: number } },
+  ) => {
+    setIsDragging(false);
+    const offset = info.offset.x;
+    const velocity = info.velocity.x;
+
+    if (offset < -50 || velocity < -500) {
+      step(1);
+    } else if (offset > 50 || velocity > 500) {
+      step(-1);
+    }
+  };
+
   const effectiveRadius =
     (Math.max(0, Math.min(20, radius)) / 20) *
     (Math.min(cardWidth, cardHeight) / 2);
   const dim = 1 - Math.max(0, Math.min(100, opacity)) / 100;
-  const transitionCss = `transform ${duration}s cubic-bezier(0.22,1,0.36,1), opacity ${duration}s cubic-bezier(0.22,1,0.36,1)`;
 
   if (!n) return null;
 
@@ -133,103 +129,121 @@ export default function ImageDisplay({
       role="group"
       aria-roledescription="carousel"
       onKeyDown={onKeyDown}
-      className="relative flex min-h-[360px] w-full min-w-[320px] items-center justify-center overflow-hidden outline-none"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="relative flex min-h-[300px] sm:min-h-[360px] w-full min-w-[280px] sm:min-w-[320px] items-center justify-center overflow-hidden outline-none select-none touch-pan-y"
       style={{ perspective: `${PERSPECTIVE}px` }}
     >
-      <div
-        className="relative"
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={handleDragEnd}
+        className="relative flex items-center justify-center w-full max-w-[90vw] sm:max-w-none cursor-grab active:cursor-grabbing"
         style={{
           width: cardWidth,
           height: cardHeight,
           transformStyle: "preserve-3d",
         }}
       >
-        {slides.map((slide, i) => {
-          let rel = i - active;
-          if (rel > n / 2) rel -= n;
-          if (rel < -n / 2) rel += n;
+        <AnimatePresence initial={false}>
+          {slides.map((slide, i) => {
+            let rel = i - active;
+            if (rel > n / 2) rel -= n;
+            if (rel < -n / 2) rel += n;
 
-          const ax = Math.abs(rel);
-          const visible = ax <= MAX_VISIBLE;
-          const isActive = rel === 0;
-          const sc = Math.max(0.4, 1 - ax * SCALE_STEP);
-          const tx = rel * (gap * 30);
-          const tz = -ax * DEPTH;
-          const ry = -rel * tilt;
-          const rz = rel * sideTilt;
+            const ax = Math.abs(rel);
+            const visible = ax <= MAX_VISIBLE;
+            const isActive = rel === 0;
+            const sc = Math.max(0.4, 1 - ax * SCALE_STEP);
+            const tx = rel * (gap * 20);
+            const tz = -ax * DEPTH;
+            const ry = -rel * tilt;
+            const rz = rel * sideTilt;
 
-          const cardStyle: CSSProperties = {
-            width: cardWidth,
-            height: cardHeight,
-            borderRadius: effectiveRadius,
-            transform: `translate(-50%, -50%) translateX(${tx}px) translateZ(${tz}px) rotateY(${ry}deg) rotateZ(${rz}deg) scale(${sc})`,
-            transition: transitionCss,
-            opacity: visible ? 1 : 0,
-            pointerEvents: visible && !autoplay ? "auto" : "none",
-          };
-
-          return (
-            <div
-              key={i}
-              onClick={() => handleCardClick(i)}
-              aria-label={slide.title}
-              aria-hidden={!visible}
-              className={`absolute left-1/2 top-1/2 overflow-hidden bg-[#1a1a1a] [transform-style:preserve-3d] [transform-origin:center] ${
-                autoplay || isActive ? "cursor-default" : "cursor-pointer"
-              }`}
-              style={cardStyle}
-            >
-              {slide.src && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={slide.src}
-                  alt={slide.alt || slide.title || ""}
-                  draggable={false}
-                  className="absolute inset-0 block h-full w-full select-none object-cover"
-                />
-              )}
-
-              {showTitle && slide.title && (
-                <>
-                  {/* Legibility gradient — corner onujayi direction */}
-                  <div
-                    className={`pointer-events-none absolute inset-0 ${
-                      isTop
-                        ? "bg-gradient-to-b from-transparent via-transparent to-black/70"
-                        : "bg-gradient-to-t from-black/70 via-transparent to-transparent"
-                    }`}
-                  />
-
-                  <div
-                    className={`pointer-events-none absolute left-[22px] right-[22px] ${
-                      isTop ? "top-6" : "bottom-6"
-                    } ${isRight ? "text-right" : "text-left"}`}
-                  >
-                    <span
-                      className="whitespace-pre-line text-[28px] font-bold leading-[1.1em] tracking-[-0.02em]"
-                      style={{
-                        color: titleColor,
-                        textShadow: "0 2px 10px rgba(0,0,0,0.4)",
-                      }}
-                    >
-                      {slide.title}
-                    </span>
-                  </div>
-                </>
-              )}
-
-              {/* Inactive card-ke dim kore dey */}
-              <div
-                className="pointer-events-none absolute inset-0 bg-black"
-                style={{
-                  opacity: isActive ? 0 : dim,
-                  transition: `opacity ${duration}s cubic-bezier(0.22,1,0.36,1)`,
+            return (
+              <motion.div
+                key={i}
+                initial={false}
+                animate={{
+                  x: tx,
+                  z: tz,
+                  rotateY: ry,
+                  rotateZ: rz,
+                  scale: sc,
+                  opacity: visible ? 1 : 0,
                 }}
-              />
-            </div>
-          );
-        })}
-      </div>
+                transition={{
+                  duration: duration,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                onClick={() => {
+                  if (!isDragging && !isActive) {
+                    setActive(i);
+                  }
+                }}
+                aria-label={slide.title}
+                aria-hidden={!visible}
+                className="absolute overflow-hidden bg-[#1a1a1a] will-change-transform max-w-[85vw] max-h-[60vh] sm:max-w-none sm:max-h-none"
+                style={{
+                  width: cardWidth,
+                  height: cardHeight,
+                  borderRadius: effectiveRadius,
+                  transformStyle: "preserve-3d",
+                  pointerEvents: visible ? "auto" : "none",
+                }}
+              >
+                {slide.src && (
+                  <Image
+                    src={slide.src}
+                    alt={slide.alt || slide.title || ""}
+                    fill
+                    priority={isActive}
+                    sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 400px"
+                    draggable={false}
+                    className="object-cover pointer-events-none"
+                  />
+                )}
+
+                {showTitle && slide.title && (
+                  <>
+                    <div
+                      className={`pointer-events-none absolute inset-0 ${
+                        isTop
+                          ? "bg-gradient-to-b from-black/70 via-transparent to-transparent"
+                          : "bg-gradient-to-t from-black/70 via-transparent to-transparent"
+                      }`}
+                    />
+
+                    <div
+                      className={`pointer-events-none absolute left-4 right-4 sm:left-[22px] sm:right-[22px] ${
+                        isTop ? "top-4 sm:top-6" : "bottom-4 sm:bottom-6"
+                      } ${isRight ? "text-right" : "text-left"}`}
+                    >
+                      <span
+                        className="whitespace-pre-line text-xl sm:text-[28px] font-bold leading-[1.1em] tracking-[-0.02em]"
+                        style={{
+                          color: titleColor,
+                          textShadow: "0 2px 10px rgba(0,0,0,0.4)",
+                        }}
+                      >
+                        {slide.title}
+                      </span>
+                    </div>
+                  </>
+                )}
+
+                <motion.div
+                  className="pointer-events-none absolute inset-0 bg-black"
+                  animate={{ opacity: isActive ? 0 : dim }}
+                  transition={{ duration: duration, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }
