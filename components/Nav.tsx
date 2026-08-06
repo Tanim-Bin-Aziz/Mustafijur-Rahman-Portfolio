@@ -4,18 +4,13 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Menu, X, User, ChevronDown, ChevronRight } from "lucide-react";
+import { FaFacebook, FaLinkedin, FaWhatsapp } from "react-icons/fa6";
 
-/* -----------------------------------------------------------
-   Nav data — Home, Portfolio, About, Video, Contact.
-   Portfolio, About, Video-er nijer nijer dropdown ache.
-   Portfolio-r "Academic (Hons)" item-er nijer arekta
-   nested submenu (flyout) ache.
------------------------------------------------------------ */
-type SubLink = { label: string; href: string; items?: SubLink[] }; // items thakle nested flyout hobe
+type SubLink = { label: string; href: string; items?: SubLink[] };
 type NavItem = {
   label: string;
   href: string;
-  items?: SubLink[]; // thakle eita dropdown hobe
+  items?: SubLink[];
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -34,8 +29,6 @@ const NAV_ITEMS: NavItem[] = [
     label: "Portfolio",
     href: "/portfolio",
     items: [
-      // ekhon category page-e niye jabe (3/4ta project card dekhabe),
-      // direct project detail e na
       { label: "Academic (Hons)", href: "/portfolio/academic-hons" },
       { label: "Professional", href: "/portfolio/professional" },
       { label: "Additional Work", href: "/portfolio/additional-work" },
@@ -227,14 +220,40 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
         </nav>
 
         {/* CTA */}
-        <motion.a
-          variants={itemVariants}
-          href="#contact"
-          className="hidden items-center rounded-lg gap-2 bg-[#8DB355] px-5 py-2 text-sm font-semibold text-cream/80 transition-colors duration-300 hover:bg-[#8DB355]/80 md:inline-flex"
-        >
-          Login
-          <User size={14} />
-        </motion.a>
+        <div className="hidden items-center gap-3 md:flex">
+          <a
+            href="/login"
+            className="rounded-full border border-cream/10 p-2 text-cream/60 transition-all duration-300 hover:border-[#8DB355] hover:text-[#8DB355]"
+          >
+            <User size={18} />
+          </a>
+          <a
+            href="https://wa.me/8801XXXXXXXXX"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-cream/10 p-2 text-cream/60 transition-all duration-300 hover:border-[#8DB355] hover:text-[#8DB355]"
+          >
+            <FaWhatsapp size={18} />
+          </a>
+
+          <a
+            href="https://facebook.com/yourusername"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-cream/10 p-2 text-cream/60 transition-all duration-300 hover:border-[#8DB355] hover:text-[#8DB355]"
+          >
+            <FaFacebook size={18} />
+          </a>
+
+          <a
+            href="https://linkedin.com/in/yourusername"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-cream/10 p-2 text-cream/60 transition-all duration-300 hover:border-[#8DB355] hover:text-[#8DB355]"
+          >
+            <FaLinkedin size={18} />
+          </a>
+        </div>
 
         {/* Mobile Toggle */}
         <motion.button
