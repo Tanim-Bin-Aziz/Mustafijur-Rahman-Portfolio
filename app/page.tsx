@@ -15,6 +15,7 @@ import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import ProjectsGrid from "@/components/ProjectsGrid";
 import PixelWarpGallery from "@/components/PixelWarpGallery";
+import ImageDisplay from "@/components/ImageDisplay";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,16 @@ export default function Home() {
         {/* <Stats /> */}
         {/* <Services /> */}
         {/* <Projects /> */}
-        <ProjectsGrid />
+        <ImageDisplay
+          slides={[
+            { src: "/images/img1.jpg", title: "Look 01" },
+            { src: "/images/img2.jpg", title: "Look 02" },
+            { src: "/images/img3.jpg", title: "Look 03" },
+            { src: "/images/img4.jpg", title: "Look 04" },
+            { src: "/images/img5.jpg", title: "Look 05" },
+          ]}
+          autoplay
+        />
         <PixelWarpGallery />
         <Certifications />
         <Experience />
