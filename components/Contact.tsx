@@ -159,7 +159,7 @@ export default function ContactSection() {
             >
               <div className="flex items-center gap-3">
                 {toast.type === "success" ? (
-                  <FaCheckCircle className="text-amber-400 text-xl shrink-0" />
+                  <FaCheckCircle className="text-[#8DB355] text-xl shrink-0" />
                 ) : (
                   <FaExclamationCircle className="text-red-400 text-xl shrink-0" />
                 )}
@@ -185,20 +185,20 @@ export default function ContactSection() {
         )}
       </AnimatePresence>
 
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#8DB355]/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#8DB355]/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl w-full mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
         <div className="lg:col-span-5 flex flex-col justify-between space-y-10">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs tracking-widest uppercase">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8DB355]/10 border border-[#8DB355]/20 text-[#8DB355] text-xs tracking-widest uppercase">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Fashion Designer & Stylist</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-light tracking-wide text-white">
               Mustafijur <br />
-              <span className="italic font-normal text-amber-200/90">
+              <span className="italic font-normal text-[#8DB355]/90">
                 Rahman
               </span>
             </h1>
@@ -213,9 +213,9 @@ export default function ContactSection() {
           <div className="space-y-4">
             <a
               href="mailto:contact@mustafijur.com"
-              className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-amber-500/30 transition-all duration-300 group"
+              className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#8DB355]/30 transition-all duration-300 group"
             >
-              <div className="p-3 rounded-lg bg-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform">
+              <div className="p-3 rounded-lg bg-[#8DB355]/10 text-[#8DB355] group-hover:scale-110 transition-transform">
                 <FaEnvelope className="text-lg" />
               </div>
               <div>
@@ -230,9 +230,9 @@ export default function ContactSection() {
 
             <a
               href="tel:+8801700000000"
-              className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-amber-500/30 transition-all duration-300 group"
+              className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#8DB355]/30 transition-all duration-300 group"
             >
-              <div className="p-3 rounded-lg bg-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform">
+              <div className="p-3 rounded-lg bg-[#8DB355]/10 text-[#8DB355] group-hover:scale-110 transition-transform">
                 <FaPhoneAlt className="text-lg" />
               </div>
               <div>
@@ -246,7 +246,7 @@ export default function ContactSection() {
             </a>
 
             <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5">
-              <div className="p-3 rounded-lg bg-amber-500/10 text-amber-400">
+              <div className="p-3 rounded-lg bg-[#8DB355]/10 text-[#8DB355]">
                 <FaMapMarkerAlt className="text-lg" />
               </div>
               <div>
@@ -307,9 +307,9 @@ export default function ContactSection() {
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-white/[0.02] to-transparent border border-amber-500/20 flex items-center justify-between gap-4">
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-[#8DB355]/10 via-white/[0.02] to-transparent border border-[#8DB355]/20 flex items-center justify-between gap-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 tracking-wider uppercase">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#8DB355] tracking-wider uppercase">
                 <QrCode className="w-4 h-4" />
                 <span>Quick Scan</span>
               </div>
@@ -319,7 +319,7 @@ export default function ContactSection() {
             </div>
 
             <div className="relative p-1.5 bg-white rounded-xl shadow-lg group">
-              <div className="absolute -top-2 -right-2 bg-black text-amber-400 border border-amber-500/40 w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-serif font-bold shadow-md">
+              <div className="absolute -top-2 -right-2 bg-black text-[#8DB355] border border-[#8DB355]/40 w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-serif font-bold shadow-md">
                 MR
               </div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -343,7 +343,7 @@ export default function ContactSection() {
               </p>
             </div>
 
-            <div className="w-10 h-10 rounded-full border border-amber-500/30 flex items-center justify-center text-amber-400 font-serif text-sm font-bold bg-amber-500/5">
+            <div className="w-10 h-10 rounded-full border border-[#8DB355]/30 flex items-center justify-center text-[#8DB355] font-serif text-sm font-bold bg-[#8DB355]/5">
               MR
             </div>
           </div>
@@ -363,7 +363,7 @@ export default function ContactSection() {
                   className={`w-full bg-white/[0.03] border rounded-xl px-4 py-3 text-sm text-white placeholder-stone-600 focus:outline-none transition-colors ${
                     errors.name
                       ? "border-red-500/60 focus:border-red-500"
-                      : "border-white/10 focus:border-amber-500/50"
+                      : "border-white/10 focus:border-[#8DB355]/50"
                   }`}
                 />
                 {errors.name && (
@@ -384,7 +384,7 @@ export default function ContactSection() {
                   className={`w-full bg-white/[0.03] border rounded-xl px-4 py-3 text-sm text-white placeholder-stone-600 focus:outline-none transition-colors ${
                     errors.email
                       ? "border-red-500/60 focus:border-red-500"
-                      : "border-white/10 focus:border-amber-500/50"
+                      : "border-white/10 focus:border-[#8DB355]/50"
                   }`}
                 />
                 {errors.email && (
@@ -432,7 +432,7 @@ export default function ContactSection() {
                   className={`w-full bg-white/[0.03] border rounded-xl px-4 py-3 text-sm text-white placeholder-stone-600 focus:outline-none transition-colors ${
                     errors.phone
                       ? "border-red-500/60 focus:border-red-500"
-                      : "border-white/10 focus:border-amber-500/50"
+                      : "border-white/10 focus:border-[#8DB355]/50"
                   }`}
                 />
                 {errors.phone && (
@@ -454,7 +454,7 @@ export default function ContactSection() {
                 className={`w-full bg-white/[0.03] border rounded-xl px-4 py-3 text-sm text-white placeholder-stone-600 focus:outline-none resize-none transition-colors ${
                   errors.message
                     ? "border-red-500/60 focus:border-red-500"
-                    : "border-white/10 focus:border-amber-500/50"
+                    : "border-white/10 focus:border-[#8DB355]/50"
                 }`}
               />
               {errors.message && (
@@ -465,7 +465,7 @@ export default function ContactSection() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-semibold text-sm tracking-wider uppercase flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-amber-500/10 cursor-pointer"
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-[#8DB355] to-[#8DB355] text-black font-semibold text-sm tracking-wider uppercase flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-[#8DB355]/10 cursor-pointer"
             >
               {isSubmitting ? (
                 <>

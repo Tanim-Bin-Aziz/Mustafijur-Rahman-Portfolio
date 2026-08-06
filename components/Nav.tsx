@@ -19,9 +19,7 @@ const NAV_ITEMS: NavItem[] = [
     label: "About",
     href: "/about",
     items: [
-      { label: "Education", href: "/about/education" },
-      { label: "Experience", href: "/about/experience" },
-      { label: "Certification", href: "/about/certification" },
+      { label: "Profile", href: "/about/profile" },
       { label: "CV", href: "/about/cv" },
     ],
   },
