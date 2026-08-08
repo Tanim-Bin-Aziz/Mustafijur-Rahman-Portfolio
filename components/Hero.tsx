@@ -151,7 +151,7 @@ function Hero({ ready = true }: { ready?: boolean }) {
           preload="metadata"
           className="absolute inset-0 h-full w-full object-cover"
         >
-          <source src="/video/background.webm" type="video/webm" />
+          <source src="/video/Background.webm" type="video/webm" />
         </video>
 
         {/* Dark Overlay — left/text area-te thakbe, text porar jonno enough dark */}
