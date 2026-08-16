@@ -24,32 +24,9 @@ const lineVariants: Variants = {
   },
 };
 
-const fadeUpVariants: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
-  },
-};
-
-const socialLinks = [
-  { icon: Github, href: "https://github.com/yourusername", label: "GitHub" },
-  {
-    icon: Linkedin,
-    href: "https://linkedin.com/in/yourusername",
-    label: "LinkedIn",
-  },
-  {
-    icon: Facebook,
-    href: "https://facebook.com/yourusername",
-    label: "Facebook",
-  },
-];
-
 function Hero({ ready = true }: { ready?: boolean }) {
   return (
-    <section className="relative min-h-screen w-full flex items-stretch overflow-hidden">
+    <section className="relative mt-20 h-[calc(100vh-5rem)] w-full flex items-stretch overflow-hidden">
       {/* Dot texture */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -60,83 +37,45 @@ function Hero({ ready = true }: { ready?: boolean }) {
         }}
       />
 
-      {/* Left — text */}
-      <div className="relative z-20 flex min-h-screen w-full items-center justify-center px-8 md:px-16 lg:justify-start lg:px-24">
-        <div className="max-w-[900px] text-center lg:text-left">
+      {/* Center — text */}
+      <div className="absolute inset-x-0 bottom-24 z-20 flex justify-center px-6">
+        <div className="text-center">
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate={ready ? "visible" : "hidden"}
           >
-            <div className="flex items-center gap-3 mb-10" />
-
-            <div className="mb-10">
-              {/* Fashion + Digital */}
-              <div className="overflow-hidden pb-2">
-                <motion.div variants={lineVariants}>
-                  <h1
-                    className="font-black italic leading-[1.15]"
-                    style={{
-                      ...serif,
-                      fontSize: "clamp(1.9rem,6vw,5.5rem)",
-                    }}
-                  >
-                    <span className="whitespace-nowrap">
-                      <span className="text-[#F0EBE1]">Elegance </span>
-                      <span className="text-[#8DB355]">Meets</span>
-                    </span>
-                  </h1>
-                </motion.div>
-              </div>
-
-              {/* Design */}
-              <div className="mt-1 overflow-hidden pb-2">
-                <motion.div variants={lineVariants}>
-                  <h1
-                    className="font-black italic leading-[1.15]"
-                    style={{
-                      ...serif,
-                      fontSize: "clamp(1.9rem,6vw,5.5rem)",
-                      color: "#F0EBE1",
-                    }}
-                  >
-                    Creativity
-                  </h1>
-                </motion.div>
-              </div>
+            <div className="overflow-hidden pb-1">
+              <motion.div variants={lineVariants}>
+                <h1
+                  className="font-black italic leading-[1.1]"
+                  style={{
+                    ...serif,
+                    fontSize: "clamp(1rem, 3vw, 2.75rem)",
+                  }}
+                >
+                  <span className="whitespace-nowrap">
+                    <span className="text-[#F0EBE1]">Elegance </span>
+                    <span className="text-[#8DB355]">Meets</span>
+                  </span>
+                </h1>
+              </motion.div>
             </div>
 
-            <motion.p
-              variants={fadeUpVariants}
-              className="text-sm md:text-base text-[#F0EBE1]/40 leading-relaxed max-w-sm mb-10"
-            >
-              Creative Director & UI/UX Designer crafting immersive digital
-              experiences for the world's most coveted fashion and luxury
-              brands.
-            </motion.p>
-
-            {/* CTA Buttons */}
-            <motion.div
-              variants={fadeUpVariants}
-              className="flex justify-center gap-4 lg:justify-start"
-            >
-              <a
-                href="#projects"
-                className="group inline-flex h-11 w-42.5 bg-[#8DB355] items-center justify-center rounded-full px-5 text-xs font-bold text-cream shadow-[0_18px_45px_rgba(195,204,155,0.18)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(195,204,155,0.28)] sm:h-auto sm:w-auto sm:px-7 sm:py-3.5 sm:text-sm"
-              >
-                View Projects
-                <span className="ml-1.5 transition duration-300 group-hover:translate-x-1 sm:ml-2">
-                  →
-                </span>
-              </a>
-
-              <a
-                href="#contact"
-                className="inline-flex items-center justify-center rounded-full border border-white/12 bg-white/4.5 px-5 py-3 text-xs font-bold text-white backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-(--accent)/45 hover:text-(--accent) sm:px-7 sm:py-3.5 sm:text-sm"
-              >
-                Contact Me
-              </a>
-            </motion.div>
+            <div className="mt-0 overflow-hidden pb-1">
+              <motion.div variants={lineVariants}>
+                <h1
+                  className="font-black italic leading-[1.1]"
+                  style={{
+                    ...serif,
+                    fontSize: "clamp(1rem, 3vw, 2.75rem)",
+                    color: "#F0EBE1",
+                  }}
+                >
+                  Creativity
+                </h1>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </div>
@@ -149,38 +88,29 @@ function Hero({ ready = true }: { ready?: boolean }) {
           loop
           playsInline
           preload="metadata"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover object-top scale-[1.05] md:scale-[1.05]"
         >
           <source src="/video/Background.webm" type="video/webm" />
         </video>
 
-        {/* Dark Overlay — left/text area-te thakbe, text porar jonno enough dark */}
+        {/* Light dark overlay for text visibility */}
         <div
-          className="absolute inset-0 hidden md:block"
+          className="absolute inset-0"
           style={{
-            background: `
-linear-gradient(
-90deg,
-rgba(9,9,10,.9) 0%,
-rgba(9,9,10,.75) 15%,
-rgba(9,9,10,.5) 30%,
-rgba(9,9,10,.2) 42%,
-rgba(9,9,10,0) 52%
-)
-`,
+            background: "rgba(9, 9, 10, 0.32)",
           }}
         />
 
-        {/* Mobile overlay — dark wash covering text area top-to-bottom */}
+        {/* Mobile overlay */}
         <div
           className="absolute inset-0 md:hidden"
           style={{
             background:
-              "linear-gradient(to top, rgba(9,9,10,.97) 0%, rgba(9,9,10,.9) 35%, rgba(9,9,10,.72) 60%, rgba(9,9,10,.45) 80%, rgba(9,9,10,.25) 100%)",
+              "linear-gradient(to top, rgba(9,9,10,.65) 0%, rgba(9,9,10,.35) 45%, rgba(9,9,10,.2) 100%)",
           }}
         />
 
-        {/* Bottom Fade (both) */}
+        {/* Bottom Fade */}
         <div
           className="absolute inset-0"
           style={{
@@ -190,18 +120,19 @@ rgba(9,9,10,0) 52%
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-30">
         <span
-          className="text-[9px] tracking-[0.38em] uppercase text-[#F0EBE1]/22"
+          className="text-[9px] tracking-[0.38em] uppercase text-[#F0EBE1]/40"
           style={mono}
         >
           Scroll
         </span>
+
         <motion.div
           animate={{ y: [0, 7, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
         >
-          <ChevronDown size={15} className="text-[#F0EBE1]/22" />
+          <ChevronDown size={15} className="text-[#F0EBE1]/40" />
         </motion.div>
       </div>
     </section>
