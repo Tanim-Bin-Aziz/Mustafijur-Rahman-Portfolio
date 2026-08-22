@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { VIDEO_ITEMS } from "@/data/video";
-import ImageGallerySystem from "@/components/ImageGallerySystem";
+import SingleVideoPage from "@/components/SingleVideoPage";
 
 export default async function VideoDetailPage({
   params,
@@ -17,17 +17,7 @@ export default async function VideoDetailPage({
   return (
     <>
       <Nav />
-      <main className="bg-[#09090a] min-h-screen pt-32 pb-20 px-6">
-        <div className="max-w-6xl mx-auto space-y-12">
-          {/* Integrated Glass Image Gallery */}
-          <div>
-            <h2 className="font-serif text-3xl text-[#F4EEE3] mb-6">
-              Media Gallery
-            </h2>
-            <ImageGallerySystem />
-          </div>
-        </div>
-      </main>
+      <SingleVideoPage item={item} />
       <Footer />
     </>
   );

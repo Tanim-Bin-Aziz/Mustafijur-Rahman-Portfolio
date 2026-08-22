@@ -39,10 +39,11 @@ const NAV_ITEMS: NavItem[] = [
       { label: "Final Collection", href: "/video/final-collection" },
       { label: "Drapping Final Dress", href: "/video/drapping-final-dress" },
       { label: "Studio Collection", href: "/video/studio-collection" },
-      { label: "Gallery", href: "/video/gallery" },
+      { label: "CLO 3D", href: "/video/clo-3d" },
+      { label: "Additional Work", href: "/video/additional-work" },
     ],
   },
-  { label: "Contact", href: "/#contact" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export default function Nav({ ready = true }: { ready?: boolean }) {

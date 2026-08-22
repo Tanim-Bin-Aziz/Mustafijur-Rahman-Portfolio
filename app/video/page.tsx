@@ -4,6 +4,19 @@ import SimpleCard from "@/components/SimpleCard";
 import { VIDEO_ITEMS } from "@/data/video";
 
 export default function VideoIndexPage() {
+  const extraLinks = [
+    {
+      title: "CLO 3D",
+      cover: "/files/holiday-vibes/thum1.jpg",
+      href: "/video/clo-3d",
+    },
+    {
+      title: "Additional Work",
+      cover: "/images/thum2.jpg",
+      href: "/video/additional-work",
+    },
+  ];
+
   return (
     <>
       <Nav />
@@ -19,6 +32,14 @@ export default function VideoIndexPage() {
                 title={item.title}
                 cover={item.cover}
                 href={`/video/${item.slug}`}
+              />
+            ))}
+            {extraLinks.map((item) => (
+              <SimpleCard
+                key={item.href}
+                title={item.title}
+                cover={item.cover}
+                href={item.href}
               />
             ))}
           </div>
