@@ -1,4 +1,3 @@
-// components/Nav.tsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -30,7 +29,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: "Academic (Hons)", href: "/portfolio/academic-hons" },
       { label: "Professional", href: "/portfolio/professional" },
       { label: "Additional Work", href: "/portfolio/additional-work" },
-      { label: "Gallery", href: "/portfolio/gallery" },
+      { label: "Image Gallery", href: "/image/gallery" },
     ],
   },
   {
