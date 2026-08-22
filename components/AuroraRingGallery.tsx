@@ -53,8 +53,10 @@ export default function AuroraRingGallery({
   const pausedRef = useRef(false);
   const inViewRef = useRef(false); // viewport-e na thakle loop e chalabe na
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const centerIndexRef = useRef(0); // ekhon front/center-e kon card ache
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [centerIndex, setCenterIndex] = useState(0); // default-e center-e thaka card — auto-follow
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [dims, setDims] = useState({ rx, ry, cardWidth, cardHeight });
 
@@ -76,14 +78,13 @@ export default function AuroraRingGallery({
   }, [rx, ry, cardWidth, cardHeight]);
 
   // Section viewport-e ache kina track kora — na thakle animation loop e chalabe na
-  // (onno section-e gele endless-loop CPU/GPU khoroch bondho hoye jabe)
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         inViewRef.current = entry.isIntersecting;
-        if (entry.isIntersecting) lastTsRef.current = null; // resume-e dt jump avoid
+        if (entry.isIntersecting) lastTsRef.current = null;
       },
       { threshold: 0.05 },
     );
@@ -91,17 +92,20 @@ export default function AuroraRingGallery({
     return () => observer.disconnect();
   }, []);
 
-  // Prottek card-er position ellipse-er upor bosano — 2D perspective illusion
-  // (fan-tilt + depth scale diye), kono real 3D rotateY/preserve-3d nai.
-  // translate3d + rounded value use kora hoise — GPU-accelerated, subpixel
-  // flicker/glitch kombe.
+  // Prottek card-er position ellipse-er upor bosano (2D perspective illusion) —
+  // ei loop-er moddhei kon card center/front (theta ≈ 90°, mane depth shobcheye
+  // beshi) er shobcheye kache ache seta ekbare ber kora hoy (extra loop lagbe na,
+  // optimization-er jonno)
   const applyPositions = useCallback(() => {
     const base = angleRef.current;
+    let bestIdx = 0;
+    let bestAngDist = Infinity;
+
     for (let i = 0; i < n; i++) {
       const el = cardRefs.current[i];
-      if (!el) continue;
 
-      const theta = ((base + (360 / n) * i) * Math.PI) / 180;
+      const thetaDeg = (((base + (360 / n) * i) % 360) + 360) % 360;
+      const theta = (thetaDeg * Math.PI) / 180;
       const x = round2(Math.cos(theta) * dims.rx);
       const y = round2(Math.sin(theta) * dims.ry);
 
@@ -110,12 +114,28 @@ export default function AuroraRingGallery({
       const scale = round2(lerp(0.55, 1.15, depth));
       const opacity = round2(lerp(0.45, 1, depth));
       const tilt = round2((x / dims.rx) * 14); // fan-tilt, left/right onujayi
-      // zIndex shobshomoy 1-90 range-e rakha — lightbox (z-[9999]) er niche e thakbe
       const zIndex = 1 + Math.round(depth * 89);
 
+      // front/center point theta = 90deg (x=0, y=+ry, depth=1) — jei card ei
+      // point-er shobcheye kache, shei-i "center e cross korche"
+      const angDist = Math.min(
+        Math.abs(thetaDeg - 90),
+        360 - Math.abs(thetaDeg - 90),
+      );
+      if (angDist < bestAngDist) {
+        bestAngDist = angDist;
+        bestIdx = i;
+      }
+
+      if (!el) continue;
       el.style.transform = `translate3d(-50%, -50%, 0) translate3d(${x}px, ${y}px, 0) rotate(${tilt}deg) scale(${scale})`;
       el.style.opacity = String(opacity);
       el.style.zIndex = String(zIndex);
+    }
+
+    if (bestIdx !== centerIndexRef.current) {
+      centerIndexRef.current = bestIdx;
+      setCenterIndex(bestIdx); // state update shudhu card change howar somoy e hoy, per-frame na
     }
   }, [n, dims]);
 
@@ -141,10 +161,10 @@ export default function AuroraRingGallery({
         dt = Math.min(dt, 0.05);
         lastTsRef.current = ts;
         angleRef.current = (angleRef.current + speed * dt) % 360;
-        applyPositions();
       } else {
         lastTsRef.current = null; // pause-er por dt jump avoid korte
       }
+      applyPositions(); // paused thakleo center-index thik moto sync thake
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
@@ -179,13 +199,19 @@ export default function AuroraRingGallery({
   const scheduleResume = () => {
     clearLeaveTimer();
     leaveTimerRef.current = setTimeout(() => {
-      setHoveredIndex(null);
-      pausedRef.current = false;
+      setHoveredIndex(null); // null hole display auto center-index-e fire jabe
+      pausedRef.current = false; // rotation abar cholte shuru korbe
       lastTsRef.current = null;
     }, 120);
   };
 
-  const handlePopupEnter = () => clearLeaveTimer();
+  // Popup-tar (default center-follow OR hover-lock, dutar khetreo) upor mouse
+  // gele pause + jeta ekhon dekhacche shetake e lock kore dey
+  const handlePopupEnter = () => {
+    clearLeaveTimer();
+    pausedRef.current = true;
+    setHoveredIndex((prev) => (prev !== null ? prev : centerIndexRef.current));
+  };
 
   const handleClick = (i: number) => {
     clearLeaveTimer();
@@ -203,7 +229,9 @@ export default function AuroraRingGallery({
   useEffect(() => clearLeaveTimer, []);
 
   if (!n) return null;
-  const hovered = hoveredIndex !== null ? items[hoveredIndex] : null;
+  // hover thakle hover-kora item, nahole jeta center cross korche shetai dekhabe
+  const displayIndex = hoveredIndex !== null ? hoveredIndex : centerIndex;
+  const displayed = items[displayIndex];
   const lightboxOpen = lightboxIndex !== null;
 
   return (
@@ -258,19 +286,21 @@ export default function AuroraRingGallery({
           </button>
         ))}
 
-        {/* Hover korle ellipse-er moddhe (center e) popup card */}
-        {hovered && (
+        {/* Center popup — default-e jei card front cross korche shetai dekhay,
+            hover korle override hoy, hover shorai nile abar auto-follow-e fire ashe */}
+        {displayed && (
           <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] flex flex-col items-center animate-fade-in">
             <div
               className="pointer-events-auto relative overflow-hidden rounded-lg shadow-2xl cursor-pointer"
               style={{ width: 260, height: 190 }}
               onMouseEnter={handlePopupEnter}
               onMouseLeave={scheduleResume}
-              onClick={() => handleClick(hoveredIndex!)}
+              onClick={() => handleClick(displayIndex)}
             >
               <Image
-                src={hovered.src}
-                alt={hovered.title}
+                key={displayIndex}
+                src={displayed.src}
+                alt={displayed.title}
                 fill
                 sizes="260px"
                 className="object-cover"
@@ -279,10 +309,10 @@ export default function AuroraRingGallery({
             </div>
             <div className="pointer-events-none mt-3 text-center">
               <p className="font-bold text-[#0B0908] text-lg">
-                {hovered.title}
+                {displayed.title}
               </p>
               <p className="font-mono text-[10px] tracking-[0.2em] text-[#0B0908]/50 uppercase mt-1">
-                {hovered.category} · {hovered.location}
+                {displayed.category} · {displayed.location}
               </p>
               <p className="font-mono text-[10px] tracking-[0.2em] text-[#8DB355] uppercase mt-2">
                 Click to enlarge +
