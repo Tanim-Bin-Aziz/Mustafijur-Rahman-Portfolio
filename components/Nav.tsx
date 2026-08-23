@@ -18,7 +18,7 @@ const NAV_ITEMS: NavItem[] = [
     label: "About",
     href: "/about",
     items: [
-      { label: "Profile", href: "/about/profile" },
+      { label: "Profile", href: "/profile" },
       { label: "CV", href: "/about/cv" },
     ],
   },
