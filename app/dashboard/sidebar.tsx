@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolderKanban, Image as ImageIcon, Video, LogOut } from "lucide-react";
-import { logout } from "../login/actions";
+import { FolderKanban, Image as ImageIcon, Video } from "lucide-react";
 
 const navItems = [
   { name: "Project Management", href: "/dashboard/projects", icon: FolderKanban },
@@ -11,17 +10,12 @@ const navItems = [
   { name: "Video Management", href: "/dashboard/videos", icon: Video },
 ];
 
-export default function Sidebar({ email }: { email: string | undefined }) {
+export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-full shrink-0 flex-col border-r border-white/10 bg-card md:w-64">
-      <div className="border-b border-white/10 px-5 py-5">
-        <p className="font-serif text-lg font-semibold text-cream">Admin</p>
-        {email && <p className="mt-0.5 truncate text-xs text-cream/45">{email}</p>}
-      </div>
-
-      <nav className="flex-1 space-y-1 px-3 py-4">
+    <aside className="fixed left-0 top-20 z-40 hidden h-[calc(100vh-5rem)] w-64 shrink-0 flex-col border-r border-cream/10 bg-[#0d0d0cf2] backdrop-blur-2xl md:flex">
+      <nav className="flex-1 space-y-1 px-3 py-6">
         {navItems.map(({ name, href, icon: Icon }) => {
           const isActive = pathname === href;
 
@@ -31,8 +25,8 @@ export default function Sidebar({ email }: { email: string | undefined }) {
               href={href}
               className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-gold/15 text-gold"
-                  : "text-cream/60 hover:bg-white/5 hover:text-cream"
+                  ? "bg-[#8DB355]/15 text-[#8DB355]"
+                  : "text-cream/60 hover:bg-cream/5 hover:text-[#8DB355]"
               }`}
             >
               <Icon size={17} />
@@ -41,16 +35,6 @@ export default function Sidebar({ email }: { email: string | undefined }) {
           );
         })}
       </nav>
-
-      <form action={logout} className="border-t border-white/10 p-3">
-        <button
-          type="submit"
-          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-cream/60 transition-colors hover:bg-white/5 hover:text-cream"
-        >
-          <LogOut size={17} />
-          Log Out
-        </button>
-      </form>
     </aside>
   );
 }

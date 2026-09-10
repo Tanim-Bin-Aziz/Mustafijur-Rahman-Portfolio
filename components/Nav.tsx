@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { Menu, X, User, ChevronDown, ChevronRight } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronDown, ChevronRight } from "lucide-react";
 import { FaFacebook, FaLinkedin, FaWhatsapp } from "react-icons/fa6";
+import { createClient } from "@/lib/supabase/client";
+import { logout } from "@/app/login/actions";
 
 type SubLink = { label: string; href: string; items?: SubLink[] };
 type NavItem = {
@@ -55,7 +57,19 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
   const [mobileSubExpanded, setMobileSubExpanded] = useState<string | null>(
     null,
   );
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -166,7 +180,6 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
                     >
                       {item.items.map((sub) =>
                         sub.items ? (
-                          // Nested flyout item (jemon: Academic (Hons))
                           <div
                             key={sub.label}
                             className="relative"
@@ -215,16 +228,37 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
               )}
             </div>
           ))}
+          {isLoggedIn && (
+            <motion.a
+              variants={itemVariants}
+              href="/dashboard"
+              className="group relative flex items-center gap-1 text-sm font-medium tracking-wide text-cream/50 transition-colors duration-300 hover:text-[#8DB355]"
+            >
+              Dashboard
+              <span className="absolute -bottom-1 left-0 h-[1.5px] w-full origin-left scale-x-0 bg-[#8DB355] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+            </motion.a>
+          )}
         </nav>
 
         {/* CTA */}
         <div className="hidden items-center gap-3 md:flex">
-          <a
-            href="/login"
-            className="rounded-full border border-cream/10 p-2 text-cream/60 transition-all duration-300 hover:border-[#8DB355] hover:text-[#8DB355]"
-          >
-            <User size={18} />
-          </a>
+          {isLoggedIn ? (
+            <form action={logout}>
+              <button
+                type="submit"
+                className="rounded-full border border-cream/10 p-2 text-cream/60 transition-all duration-300 hover:border-red-500 hover:text-red-500"
+              >
+                <LogOut size={18} />
+              </button>
+            </form>
+          ) : (
+            <a
+              href="/login"
+              className="rounded-full border border-cream/10 p-2 text-cream/60 transition-all duration-300 hover:border-[#8DB355] hover:text-[#8DB355]"
+            >
+              <User size={18} />
+            </a>
+          )}
           <a
             href="https://wa.me/8801XXXXXXXXX"
             target="_blank"
@@ -378,6 +412,16 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
                     {item.label}
                   </a>
                 ),
+              )}
+
+              {isLoggedIn && (
+                <a
+                  href="/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="border-b border-cream/5 py-3 text-base font-medium text-cream/60 transition-colors duration-300 hover:text-[#8DB355]"
+                >
+                  Dashboard
+                </a>
               )}
 
               <a

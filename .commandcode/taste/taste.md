@@ -1,0 +1,1 @@
+- Prefers a single shared navbar across both public pages and the dashboard, rather than a separate dashboard-specific sidebar or navbar. Confidence: 0.85

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import Nav from "@/components/Nav";
 import Sidebar from "./sidebar";
 
 export const metadata = {
@@ -16,16 +17,17 @@ export default async function DashboardLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Middleware eta already handle kore, kintu direct server-render-e o
-  // extra safety hishebe check kora thakche
   if (!user) {
     redirect("/login");
   }
 
   return (
-    <div className="flex min-h-screen bg-bg text-cream">
-      <Sidebar email={user.email} />
-      <main className="flex-1 overflow-y-auto p-6 sm:p-8">{children}</main>
+    <div className="min-h-screen bg-bg text-cream">
+      <Nav />
+      <Sidebar />
+      <main className="pt-20 md:pl-64">
+        <div className="p-6 sm:p-8">{children}</div>
+      </main>
     </div>
   );
 }
