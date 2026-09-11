@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ProjectCard from "@/components/ProjectCard";
-import { getCategory, getProjectsByCategory } from "@/lib/projects";
+import { getCategory, getProjectsByCategory } from "@/data/projects";
 
 export default async function CategoryPage({
   params,
@@ -10,11 +10,11 @@ export default async function CategoryPage({
   params: Promise<{ category: string }>;
 }) {
   const { category } = await params;
-  const cat = await getCategory(category);
+  const cat = getCategory(category);
 
   if (!cat) return notFound();
 
-  const projects = await getProjectsByCategory(category);
+  const projects = getProjectsByCategory(category);
 
   return (
     <>

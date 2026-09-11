@@ -17,7 +17,7 @@ import {
   Maximize2,
   ArrowRight,
 } from "lucide-react";
-import type { Project } from "@/data/projects";
+import type { Project } from "@/lib/projects";
 
 interface Props {
   project: Project;
@@ -138,7 +138,7 @@ function PreviewMode({
   );
 }
 
-/* ------------------ Grid of image cards ------------------ */
+
 function ImageGrid({
   images,
   title,

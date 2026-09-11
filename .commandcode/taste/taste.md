@@ -1,1 +1,6 @@
 - Prefers a single shared navbar across both public pages and the dashboard, rather than a separate dashboard-specific sidebar or navbar. Confidence: 0.85
+- Wants a backup/restore safety net before files are modified — keep copies of the originals (or rely on git) so changes can be rolled back if something goes wrong. Confidence: 0.9
+- Wants the session saved as a durable handoff when pausing work — a notes file with an explicit "where to pick up" section plus a task ledger of blocking/pending steps, so work can resume without re-reading the conversation. Confidence: 0.7
+- Prefers friendly, human-readable error pages over raw framework error dumps — when something breaks, show a styled message with actionable buttons ("Try again", "Back to projects") rather than a stack trace or technical error message. Confidence: 0.85
+- Gives very short, informal instructions (often with typos/abbreviations) and expects the assistant to interpret intent and fill in gaps without excessive clarification. Confidence: 0.8
+- Expects immediate visual feedback on form inputs — e.g. displaying the selected filename after choosing a file rather than leaving a blank/generic label. Prefers unambiguous UI states where the user always knows what action was registered. Confidence: 0.8

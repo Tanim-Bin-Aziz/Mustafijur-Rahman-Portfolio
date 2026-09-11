@@ -13,7 +13,6 @@ import Experience from "@/components/Experience";
 import Testimonials from "@/components/Testimonials";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
-import ProjectsGrid from "@/components/ProjectsGrid";
 import PixelWarpGallery from "@/components/PixelWarpGallery";
 import ImageDisplay from "@/components/ImageDisplay";
 import AuroraRingGallery from "@/components/AuroraRingGallery";

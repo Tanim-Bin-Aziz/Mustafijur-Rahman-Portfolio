@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Shell(npx tsc --noEmit 2 >& 1)",
-      "Shell(npx tsc --noEmit)"
+      "Shell(npx tsc --noEmit)",
+      "Shell(copy:*)",
+      "Shell(dir:*)",
+      "Shell(npx next build 2 >& 1)",
+      "powershell",
+      "Shell(npx next dev --port 3210)"
     ],
     "deny": [],
     "defaultMode": "default"

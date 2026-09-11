@@ -9,7 +9,7 @@ import {
   Maximize2,
   ArrowRight,
 } from "lucide-react";
-import type { Project } from "@/lib/projects";
+import type { Project } from "@/data/projects";
 import PDFViewerModal from "@/components/PDFViewerModal";
 import Nav from "@/components/Nav";
 

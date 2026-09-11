@@ -1,9 +1,11 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ProjectCard from "@/components/ProjectCard";
-import { CATEGORIES } from "@/data/projects";
+import { getCategories } from "@/lib/projects";
 
-export default function PortfolioIndexPage() {
+export default async function PortfolioIndexPage() {
+  const categories = await getCategories();
+
   return (
     <>
       <Nav />
@@ -13,7 +15,7 @@ export default function PortfolioIndexPage() {
             The <span className="text-[#8db355]">Portfolio Archive</span>
           </h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {CATEGORIES.map((c) => (
+            {categories.map((c) => (
               <ProjectCard
                 key={c.id}
                 title={c.title}

@@ -1,8 +1,10 @@
 import ProjectCard from "./ProjectCard";
-import { CATEGORIES } from "@/data/projects";
+import { getCategories } from "@/lib/projects";
 import { FadeUp } from "./Motion";
 
-export default function ProjectsGrid() {
+export default async function ProjectsGrid() {
+  const categories = await getCategories();
+
   return (
     <section id="projects" className="py-28 px-6 bg-[##09090a]">
       <div className="max-w-6xl mx-auto">
@@ -12,7 +14,7 @@ export default function ProjectsGrid() {
           </h2>
         </FadeUp>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <ProjectCard
               key={c.id}
               title={c.title}
