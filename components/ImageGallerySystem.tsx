@@ -17,7 +17,29 @@ import {
 } from "lucide-react";
 import { GALLERY_FOLDERS, GALLERY_IMAGES, GalleryImage } from "@/data/gallery";
 
-export default function ImageGallerySystem() {
+export default function ImageGallerySystem(props: {
+  folders?: { id: string; slug: string; name: string }[];
+  images?: {
+    id: string;
+    folderId: string;
+    title: string;
+    imageUrl: string;
+    date: string | null;
+  }[];
+}) {
+  const dataFolders = props.folders ?? GALLERY_FOLDERS;
+  const dataImages = props.images ?? GALLERY_IMAGES;
+
+  const allFolder = { id: "all", slug: "all", name: "All Photos" };
+  const foldersWithAll = [allFolder, ...dataFolders];
+
+  const normalizedImages: GalleryImage[] = dataImages.map((img) => ({
+    id: img.id,
+    title: img.title,
+    src: "imageUrl" in img ? img.imageUrl : (img as GalleryImage).src,
+    date: img.date ?? "",
+    folderId: img.folderId,
+  }));
   const [selectedFolder, setSelectedFolder] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title">("newest");
@@ -85,7 +107,7 @@ export default function ImageGallerySystem() {
 
   // Global Filter & Search Logic
   const filteredImages = useMemo(() => {
-    return GALLERY_IMAGES.filter((img) => {
+    return normalizedImages.filter((img) => {
       const matchesFolder =
         searchQuery.trim() !== "" ||
         selectedFolder === "all" ||
@@ -126,16 +148,16 @@ export default function ImageGallerySystem() {
         <div className="h-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col gap-2 shadow-2xl">
           <div className="flex items-center justify-between px-3 py-2 text-[#F4EEE3]/50 text-xs font-mono uppercase tracking-widest border-b border-white/5 pb-3">
             <span>Folders</span>
-            <span className="text-[#8db355]">{GALLERY_FOLDERS.length}</span>
+            <span className="text-[#8db355]">{foldersWithAll.length - 1}</span>
           </div>
 
           <nav className="flex flex-col gap-1 mt-2 overflow-y-auto">
-            {GALLERY_FOLDERS.map((folder) => {
+            {foldersWithAll.map((folder) => {
               const isActive = selectedFolder === folder.id;
               const count =
                 folder.id === "all"
-                  ? GALLERY_IMAGES.length
-                  : GALLERY_IMAGES.filter((i) => i.folderId === folder.id)
+                  ? normalizedImages.length
+                  : normalizedImages.filter((i) => i.folderId === folder.id)
                       .length;
 
               return (

@@ -1,58 +1,50 @@
-# Session Notes — Dashboard Project Upload System
+# Session Notes — Dashboard Upload Systems
 
-**Status:** Code complete and verified. Blocked on one manual step (SQL migration).
+**Status:** Code complete and verified for projects + gallery. Blocked on manual SQL steps.
 **Date:** 2026-09-10
 
 ---
 
 ## ⏭️ WHERE TO PICK UP
 
-### The one blocking step
+### Run the SQL migrations (required)
 
-The Supabase tables **do not exist yet** — verified by querying the REST API,
-which returns `Could not find the table 'public.categories'`.
+Both systems need their Supabase tables created. Run these in Supabase SQL Editor, one at a time:
 
-**Do this first:**
-
-1. Open Supabase → **SQL Editor** → New query
-2. Paste all of `lib/supabase/migrations/001_init.sql`
-3. **Run**
+1. `lib/supabase/migrations/001_init.sql` — projects/categories tables
+2. `lib/supabase/migrations/002_gallery.sql` — gallery folders/images tables
 
 Then verify:
-
 ```sql
-select count(*) from categories;   -- expect 4
-select count(*) from projects;     -- expect 12
+select count(*) from categories;       -- expect 4
+select count(*) from projects;         -- expect 12
+select count(*) from gallery_folders;  -- expect 3
+select count(*) from gallery_images;   -- expect 5
 ```
 
-This creates the tables, RLS policies, 3 storage buckets, and **seeds the
-existing 4 categories + 12 projects** from `public/`, so no content is lost.
-
-### After that — test the flow
+### Test the flows
 
 ```bash
 npm run dev
 ```
 
-1. `/login` → sign in
-2. Navbar now shows a **Dashboard** link (signed-in only)
-3. `/dashboard/projects` → pick a category → **Add project**
-4. Upload cover + gallery images + PDF → **Publish**
-5. Confirm it appears at `/portfolio/academic-hons/<slug>`
-6. Test edit and delete
+**Projects:** `/login` → `/dashboard/projects` → pick category → Add project → upload cover + images + PDF
+
+**Gallery:** `/login` => `/dashboard/pictures` → Add image or click edit/delete on existing images. Public gallery at `/image/gallery` reads from Supabase.
 
 ---
 
-## ✅ What was completed this session
+## ✅ What was completed
 
 **Navbar (earlier in session)**
 - `components/Nav.tsx` — tracks auth state via Supabase; shows **Dashboard**
   link + logout button when signed in, login icon when signed out
 - `app/dashboard/layout.tsx` — now uses the shared `Nav` (not a separate
   dashboard-only nav)
-- `app/dashboard/sidebar.tsx` — restyled to match the frontend palette
+- `app/dashboard/sidebar.tsx` — restyled to match the frontend palette; gallery
+  management removed from project management
 
-**Upload system**
+**Project upload system**
 - `lib/supabase/migrations/001_init.sql` — schema, RLS, buckets, seed data
 - `lib/projects.ts` — Supabase data layer (replaces `data/projects.ts`)
 - `lib/supabase/storage.ts` — upload helpers for cover / images / PDF
@@ -64,7 +56,18 @@ npm run dev
 - `components/dashboard/ProjectForm.tsx` — full upload form
 - `components/dashboard/ConfirmSubmit.tsx` — confirm-before-delete button
 - Frontend pages switched from static data to Supabase
-- `next.config.ts` — allows `**.supabase.co` images
+- `next.config.ts` — allows `**.supabase.co` images + 20 MB body limit
+
+**Gallery/image management system**
+- `lib/supabase/migrations/002_gallery.sql` — gallery folders/images schema + seed
+- `lib/gallery.ts` — data layer
+- `app/dashboard/pictures/actions.ts` — add/edit/remove image server actions
+- `app/dashboard/pictures/page.tsx` — image grid grouped by folder
+- `app/dashboard/pictures/new/page.tsx` — add image form
+- `app/dashboard/pictures/[id]/page.tsx` — edit image form
+- `components/dashboard/ImageForm.tsx` — reusable add/edit form
+- `components/ImageGallerySystem.tsx` — updated to accept Supabase data
+- `app/image/gallery/page.tsx` — public gallery now reads from Supabase
 
 **Verification already done**
 - `npx tsc --noEmit` → clean

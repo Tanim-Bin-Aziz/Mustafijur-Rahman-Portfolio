@@ -1,8 +1,14 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ImageGallerySystem from "@/components/ImageGallerySystem";
+import { getGalleryFolders, getGalleryImages } from "@/lib/gallery";
 
-export default function ImageGalleryPage() {
+export default async function ImageGalleryPage() {
+  const [folders, images] = await Promise.all([
+    getGalleryFolders(),
+    getGalleryImages(),
+  ]);
+
   return (
     <>
       <Nav />
@@ -11,7 +17,7 @@ export default function ImageGalleryPage() {
           <h1 className="font-serif font-black italic text-4xl md:text-6xl tracking-tight text-[#F4EEE3]">
             Image <span className="text-[#8db355]">Gallery</span>
           </h1>
-          <ImageGallerySystem />
+          <ImageGallerySystem folders={folders} images={images} />
         </div>
       </main>
       <Footer />

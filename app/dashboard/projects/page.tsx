@@ -4,10 +4,12 @@ import { ArrowRight } from "lucide-react";
 import { getCategories, getCategoryProjectCounts } from "@/lib/projects";
 
 export default async function ProjectsManagementPage() {
-  const [categories, counts] = await Promise.all([
+  const [allCategories, counts] = await Promise.all([
     getCategories(),
     getCategoryProjectCounts(),
   ]);
+
+  const categories = allCategories.filter((c) => c.slug !== "gallery");
 
   return (
     <div className="mx-auto max-w-5xl">
