@@ -4,3 +4,4 @@
 - Prefers friendly, human-readable error pages over raw framework error dumps — when something breaks, show a styled message with actionable buttons ("Try again", "Back to projects") rather than a stack trace or technical error message. Confidence: 0.85
 - Gives very short, informal instructions (often with typos/abbreviations) and expects the assistant to interpret intent and fill in gaps without excessive clarification. Confidence: 0.8
 - Expects immediate visual feedback on form inputs — e.g. displaying the selected filename after choosing a file rather than leaving a blank/generic label. Prefers unambiguous UI states where the user always knows what action was registered. Confidence: 0.8
+- Writes code comments in Banglish (Bengali transliterated in Latin script), e.g. "Client Component-gulo theke Supabase call korar jonno". Confidence: 0.6
