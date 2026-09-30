@@ -88,6 +88,7 @@ function Hero({ ready = true }: { ready?: boolean }) {
           loop
           playsInline
           preload="metadata"
+          poster="/images/profile.jpg"
           className="absolute inset-0 h-full w-full object-cover object-top scale-[1.05] md:scale-[1.05]"
         >
           <source src="/video/Background.webm" type="video/webm" />

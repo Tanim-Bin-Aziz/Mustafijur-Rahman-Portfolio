@@ -34,10 +34,10 @@ export const SHOWCASE: ShowcaseCategory[] = [
     label: "Swatch",
     title: "Fabric Swatch Library",
     images: [
-      { src: "/images/swatch/1.png", alt: "Cotton swatch collection" },
-      { src: "/images/swatch/2.png", alt: "Linen and wool swatch board" },
-      { src: "/images/swatch/3.png", alt: "Seasonal colour swatch layout" },
-      { src: "/images/swatch/4.png", alt: "Seasonal colour swatch layout" },
+      { src: "/images/Swatch/1.png", alt: "Cotton swatch collection" },
+      { src: "/images/Swatch/2.png", alt: "Linen and wool swatch board" },
+      { src: "/images/Swatch/3.png", alt: "Seasonal colour swatch layout" },
+      { src: "/images/Swatch/4.png", alt: "Seasonal colour swatch layout" },
     ],
     details: [
       "24 fabric variants catalogued",

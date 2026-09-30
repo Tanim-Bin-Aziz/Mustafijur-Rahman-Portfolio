@@ -5,10 +5,12 @@ export default function SimpleCard({
   title,
   cover,
   href,
+  priority = false,
 }: {
   title: string;
   cover: string;
   href: string;
+  priority?: boolean; // first card above the fold-e priority load
 }) {
   return (
     <Link
@@ -19,6 +21,7 @@ export default function SimpleCard({
         src={cover}
         alt={title}
         fill
+        priority={priority}
         sizes="(max-width:768px) 100vw, (max-width:1200px) 50vw, 33vw"
         className="object-cover transition-transform duration-700 group-hover:scale-105"
       />

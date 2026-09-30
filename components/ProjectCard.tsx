@@ -6,11 +6,13 @@ export default function ProjectCard({
   cover,
   href,
   previewImages,
+  priority = false,
 }: {
   title: string;
   cover: string;
   href: string;
   previewImages?: string[]; // thakle stacked layer gula-te alada image dekhabe
+  priority?: boolean; // first cards above the fold-e priority load
 }) {
   const backImage = previewImages?.[1] ?? cover;
   const midImage = previewImages?.[0] ?? cover;
@@ -60,6 +62,7 @@ export default function ProjectCard({
           src={cover}
           alt={title}
           fill
+          priority={priority}
           sizes="(max-width:768px) 100vw, (max-width:1200px) 50vw, 33vw"
           className="object-cover transition-transform duration-700 group-hover:scale-105"
         />

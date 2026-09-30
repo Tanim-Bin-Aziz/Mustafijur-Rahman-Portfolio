@@ -26,20 +26,22 @@ export default function VideoIndexPage() {
             Video <span className="text-[#8db355]">Gallery</span>
           </h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {VIDEO_ITEMS.map((item) => (
+            {VIDEO_ITEMS.map((item, i) => (
               <SimpleCard
                 key={item.id}
                 title={item.title}
                 cover={item.cover}
                 href={`/video/${item.slug}`}
+                priority={i < 2}
               />
             ))}
-            {extraLinks.map((item) => (
+            {extraLinks.map((item, i) => (
               <SimpleCard
                 key={item.href}
                 title={item.title}
                 cover={item.cover}
                 href={item.href}
+                priority={VIDEO_ITEMS.length + i < 2}
               />
             ))}
           </div>

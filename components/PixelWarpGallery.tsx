@@ -16,22 +16,6 @@ const DEFAULT_ITEMS: GalleryItem[] = [
     label: "Motion 01",
     video: "/video/1.mp4",
   },
-  {
-    label: "Motion 02",
-    video: "/videos/motion-02.mp4",
-  },
-  {
-    label: "Motion 03",
-    video: "/videos/motion-03.mp4",
-  },
-  {
-    label: "Motion 04",
-    video: "/videos/motion-04.mp4",
-  },
-  {
-    label: "Motion 05",
-    video: "/videos/motion-05.mp4",
-  },
 ];
 
 const CARD_LAYOUT = [
@@ -63,7 +47,7 @@ function WarpCard({ item, index }: { item: GalleryItem; index: number }) {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="metadata"
       />
 
       {item.label && (

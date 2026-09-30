@@ -54,6 +54,7 @@ export default function AuroraRingGallery({
   const inViewRef = useRef(false); // viewport-e na thakle loop e chalabe na
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const centerIndexRef = useRef(0); // ekhon front/center-e kon card ache
+  const hasMountedRef = useRef(false); // priority shudhu first render-e, poroborti rotation-e na
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [centerIndex, setCenterIndex] = useState(0); // default-e center-e thaka card — auto-follow
@@ -79,6 +80,7 @@ export default function AuroraRingGallery({
 
   // Section viewport-e ache kina track kora — na thakle animation loop e chalabe na
   useEffect(() => {
+    hasMountedRef.current = true;
     const el = sectionRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
@@ -304,7 +306,7 @@ export default function AuroraRingGallery({
                 fill
                 sizes="260px"
                 className="object-cover"
-                priority
+                priority={!hasMountedRef.current}
               />
             </div>
             <div className="pointer-events-none mt-3 text-center">

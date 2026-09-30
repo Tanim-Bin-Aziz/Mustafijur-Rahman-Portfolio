@@ -34,7 +34,7 @@ interface FormErrors {
 
 export default function ContactSection() {
   const qrData = "https://wa.me/8801700000000";
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}&color=000000&bgcolor=ffffff`;
+  const qrCodeUrl = "/images/qr.png";
 
   const [formData, setFormData] = useState<FormData>({
     name: "",

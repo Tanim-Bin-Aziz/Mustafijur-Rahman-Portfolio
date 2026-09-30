@@ -1,4 +1,5 @@
 import { login } from "./actions";
+import PasswordField from "@/components/dashboard/PasswordField";
 
 export const metadata = {
   title: "Login | Admin",
@@ -48,7 +49,7 @@ export default async function LoginPage({
               required
               autoComplete="email"
               placeholder="you@example.com"
-              className="w-full rounded-lg border border-white/10 bg-bg px-3.5 py-2.5 text-sm text-cream outline-none transition-colors focus:border-gold/60"
+              className="w-full rounded-lg border border-white/10 bg-bg px-3.5 py-2.5 text-sm text-cream outline-none transition-colors focus:border-[#8DB355]/60"
             />
           </div>
 
@@ -59,20 +60,12 @@ export default async function LoginPage({
             >
               Password
             </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              placeholder="••••••••"
-              className="w-full rounded-lg border border-white/10 bg-bg px-3.5 py-2.5 text-sm text-cream outline-none transition-colors focus:border-gold/60"
-            />
+            <PasswordField />
           </div>
 
           <button
             type="submit"
-            className="mt-2 w-full rounded-lg bg-gold px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-gold-light"
+            className="mt-2 w-full rounded-lg bg-[#8DB355] px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-[#8DB355]/85"
           >
             Sign In
           </button>

@@ -13,12 +13,13 @@ export default function AboutIndexPage() {
             About <span className="text-[#8db355]">Me</span>
           </h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {ABOUT_ITEMS.map((item) => (
+            {ABOUT_ITEMS.map((item, i) => (
               <SimpleCard
                 key={item.id}
                 title={item.title}
                 cover={item.cover}
                 href={`/about/${item.slug}`}
+                priority={i < 2}
               />
             ))}
           </div>

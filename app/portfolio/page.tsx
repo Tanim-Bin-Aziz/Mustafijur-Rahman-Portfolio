@@ -15,12 +15,13 @@ export default async function PortfolioIndexPage() {
             The <span className="text-[#8db355]">Portfolio Archive</span>
           </h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {categories.map((c) => (
+            {categories.map((c, i) => (
               <ProjectCard
                 key={c.id}
                 title={c.title}
                 cover={c.cover}
                 href={`/portfolio/${c.slug}`}
+                priority={i < 2}
               />
             ))}
           </div>

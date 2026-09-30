@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, WheelEvent, MouseEvent } from "react";
+import Image from "next/image";
 import {
   ZoomIn,
   ZoomOut,
@@ -133,11 +134,14 @@ function ImageGallery({ images, title }: { images: string[]; title: string }) {
             onClick={() => setOpenIndex(i)}
             className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-[#151311] hover:border-[#C89B6A]/50 transition-all duration-300"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={src}
               alt={`${title} image ${i + 1}`}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              fill
+              loading="lazy"
+              decoding="async"
+              sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 25vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
             <span className="absolute bottom-2 right-2 font-mono text-[10px] px-2 py-0.5 rounded-full bg-black/50 text-[#F4EEE3]/70">
