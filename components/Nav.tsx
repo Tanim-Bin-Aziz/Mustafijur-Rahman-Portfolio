@@ -65,7 +65,9 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsLoggedIn(!!session);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session);
     });
     return () => subscription.unsubscribe();
@@ -260,7 +262,7 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
             </a>
           )}
           <a
-            href="https://wa.me/8801XXXXXXXXX"
+            href="https://wa.me/8801710768932"
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full border border-cream/10 p-2 text-cream/60 transition-all duration-300 hover:border-[#8DB355] hover:text-[#8DB355]"
@@ -269,7 +271,7 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
           </a>
 
           <a
-            href="https://facebook.com/yourusername"
+            href="https://www.facebook.com/profile.php?id=61568851160922"
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full border border-cream/10 p-2 text-cream/60 transition-all duration-300 hover:border-[#8DB355] hover:text-[#8DB355]"
@@ -278,7 +280,7 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
           </a>
 
           <a
-            href="https://linkedin.com/in/yourusername"
+            href="https://www.linkedin.com/in/mustafijur-rahman-06baa927b/"
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full border border-cream/10 p-2 text-cream/60 transition-all duration-300 hover:border-[#8DB355] hover:text-[#8DB355]"

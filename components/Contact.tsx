@@ -223,13 +223,13 @@ export default function ContactSection() {
                   Email Inquiry
                 </p>
                 <p className="text-sm font-medium text-stone-200">
-                  contact@mustafijur.com
+                  ashikislam01710@gmail.com
                 </p>
               </div>
             </a>
 
             <a
-              href="tel:+8801700000000"
+              href="tel:+8801710768932"
               className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#8DB355]/30 transition-all duration-300 group"
             >
               <div className="p-3 rounded-lg bg-[#8DB355]/10 text-[#8DB355] group-hover:scale-110 transition-transform">
@@ -240,7 +240,7 @@ export default function ContactSection() {
                   Direct Line
                 </p>
                 <p className="text-sm font-medium text-stone-200">
-                  +880 1700-000000
+                  +880 1710-768932
                 </p>
               </div>
             </a>
@@ -251,10 +251,10 @@ export default function ContactSection() {
               </div>
               <div>
                 <p className="text-xs text-stone-500 uppercase tracking-wider">
-                  Atelier Location
+                  Based In
                 </p>
                 <p className="text-sm font-medium text-stone-200">
-                  Dhaka, Bangladesh / Paris, France
+                  Dhaka, Bangladesh
                 </p>
               </div>
             </div>
@@ -276,7 +276,7 @@ export default function ContactSection() {
               </a>
 
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/in/mustafijur-rahman-06baa927b/"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="LinkedIn"
@@ -286,7 +286,7 @@ export default function ContactSection() {
               </a>
 
               <a
-                href="https://facebook.com"
+                href="https://facebook.com/profile.php?id=61568851160922"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Facebook"
@@ -296,7 +296,7 @@ export default function ContactSection() {
               </a>
 
               <a
-                href="https://wa.me/8801700000000"
+                href="https://wa.me/8801710768932"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="WhatsApp"

@@ -5,6 +5,7 @@ import {
   useRef,
   useEffect,
   useCallback,
+  useMemo,
   WheelEvent,
   MouseEvent,
 } from "react";
@@ -59,24 +60,36 @@ export default function AuroraRingGallery({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [centerIndex, setCenterIndex] = useState(0); // default-e center-e thaka card — auto-follow
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [dims, setDims] = useState({ rx, ry, cardWidth, cardHeight });
+  // Design size shobshomoy desktop-er moto fixed — mobile e shudhu pura stage
+  // ta uniform scale hoy (ring, card, popup, text shob ekshathe)
+  const dims = useMemo(
+    () => ({ rx, ry, cardWidth, cardHeight }),
+    [rx, ry, cardWidth, cardHeight],
+  );
+  const designWidth = dims.rx * 2 + dims.cardWidth * 2;
+  const designHeight = dims.ry * 2 + dims.cardHeight * 1.4;
 
-  // Responsive scale — chhoto screen-e ellipse/card chhoto hobe
+  const stageWrapRef = useRef<HTMLDivElement>(null);
+  const [stageScale, setStageScale] = useState(1);
+  const [measured, setMeasured] = useState(false);
+
+  // Responsive scale — available width-er sathe fit kore pura design uniform
+  // scale hoy (desktop e 1, mobile e chhoto). Design same thake, size ta shudhu
+  // chhoto hoy.
   useEffect(() => {
+    const el = stageWrapRef.current;
+    if (!el) return;
     const update = () => {
-      const w = window.innerWidth;
-      const factor = clamp(w / 1280, 0.42, 1);
-      setDims({
-        rx: rx * factor,
-        ry: ry * factor,
-        cardWidth: cardWidth * factor,
-        cardHeight: cardHeight * factor,
-      });
+      const w = el.clientWidth;
+      if (!w) return;
+      setStageScale(Math.min(1, w / designWidth));
+      setMeasured(true);
     };
     update();
-    window.addEventListener("resize", update, { passive: true });
-    return () => window.removeEventListener("resize", update);
-  }, [rx, ry, cardWidth, cardHeight]);
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [designWidth]);
 
   // Section viewport-e ache kina track kora — na thakle animation loop e chalabe na
   useEffect(() => {
@@ -251,77 +264,88 @@ export default function AuroraRingGallery({
       </div>
 
       <div
+        ref={stageWrapRef}
         className="relative mx-auto"
         style={{
-          height: dims.ry * 2 + dims.cardHeight * 1.4,
-          maxWidth: dims.rx * 2 + dims.cardWidth * 2,
+          height: designHeight * stageScale,
+          maxWidth: designWidth,
+          opacity: measured ? 1 : 0,
           visibility: lightboxOpen ? "hidden" : "visible",
           pointerEvents: lightboxOpen ? "none" : "auto",
         }}
       >
-        {items.map((item, i) => (
-          <button
-            key={i}
-            ref={(el) => {
-              cardRefs.current[i] = el;
-            }}
-            onMouseEnter={() => handleCardEnter(i)}
-            onMouseLeave={scheduleResume}
-            onClick={() => handleClick(i)}
-            aria-label={item.title}
-            className="absolute left-1/2 top-1/2 overflow-hidden rounded-[2px] shadow-md transition-opacity duration-200"
-            style={{
-              width: dims.cardWidth,
-              height: dims.cardHeight,
-              willChange: "transform, opacity",
-              backfaceVisibility: "hidden",
-            }}
-          >
-            <Image
-              src={item.src}
-              alt={item.title}
-              fill
-              sizes="120px"
-              className="object-cover pointer-events-none"
-              loading="lazy"
-            />
-          </button>
-        ))}
-
-        {/* Center popup — default-e jei card front cross korche shetai dekhay,
-            hover korle override hoy, hover shorai nile abar auto-follow-e fire ashe */}
-        {displayed && (
-          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] flex flex-col items-center animate-fade-in">
-            <div
-              className="pointer-events-auto relative overflow-hidden rounded-lg shadow-2xl cursor-pointer"
-              style={{ width: 260, height: 190 }}
-              onMouseEnter={handlePopupEnter}
+        <div
+          className="absolute left-0 top-0 origin-top-left"
+          style={{
+            width: designWidth,
+            height: designHeight,
+            transform: `scale(${stageScale})`,
+          }}
+        >
+          {items.map((item, i) => (
+            <button
+              key={i}
+              ref={(el) => {
+                cardRefs.current[i] = el;
+              }}
+              onMouseEnter={() => handleCardEnter(i)}
               onMouseLeave={scheduleResume}
-              onClick={() => handleClick(displayIndex)}
+              onClick={() => handleClick(i)}
+              aria-label={item.title}
+              className="absolute left-1/2 top-1/2 overflow-hidden rounded-[2px] shadow-md transition-opacity duration-200"
+              style={{
+                width: dims.cardWidth,
+                height: dims.cardHeight,
+                willChange: "transform, opacity",
+                backfaceVisibility: "hidden",
+              }}
             >
               <Image
-                key={displayIndex}
-                src={displayed.src}
-                alt={displayed.title}
+                src={item.src}
+                alt={item.title}
                 fill
-                sizes="260px"
-                className="object-cover"
-                priority={!hasMountedRef.current}
+                sizes="120px"
+                className="object-cover pointer-events-none"
+                loading="lazy"
               />
+            </button>
+          ))}
+
+          {/* Center popup — default-e jei card front cross korche shetai dekhay,
+            hover korle override hoy, hover shorai nile abar auto-follow-e fire ashe */}
+          {displayed && (
+            <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] flex flex-col items-center animate-fade-in">
+              <div
+                className="pointer-events-auto relative overflow-hidden rounded-lg shadow-2xl cursor-pointer"
+                style={{ width: 260, height: 190 }}
+                onMouseEnter={handlePopupEnter}
+                onMouseLeave={scheduleResume}
+                onClick={() => handleClick(displayIndex)}
+              >
+                <Image
+                  key={displayIndex}
+                  src={displayed.src}
+                  alt={displayed.title}
+                  fill
+                  sizes="260px"
+                  className="object-cover"
+                  priority={!hasMountedRef.current}
+                />
+              </div>
+              <div className="pointer-events-none mt-3 text-center">
+                <p className="font-bold text-[#0B0908] text-lg">
+                  {displayed.title}
+                </p>
+                <p className="font-mono text-[10px] tracking-[0.2em] text-[#0B0908]/50 uppercase mt-1">
+                  {displayed.category} · {displayed.location}
+                </p>
+                <p className="font-mono text-[10px] tracking-[0.2em] text-[#8DB355] uppercase mt-2">
+                  Click to enlarge +
+                </p>
+              </div>
             </div>
-            <div className="pointer-events-none mt-3 text-center">
-              <p className="font-bold text-[#0B0908] text-lg">
-                {displayed.title}
-              </p>
-              <p className="font-mono text-[10px] tracking-[0.2em] text-[#0B0908]/50 uppercase mt-1">
-                {displayed.category} · {displayed.location}
-              </p>
-              <p className="font-mono text-[10px] tracking-[0.2em] text-[#8DB355] uppercase mt-2">
-                Click to enlarge +
-              </p>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {lightboxOpen && (

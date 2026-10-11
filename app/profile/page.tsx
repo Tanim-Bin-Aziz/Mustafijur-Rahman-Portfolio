@@ -3,7 +3,30 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import Image from "next/image";
-import { FaFacebook, FaLinkedin, FaWhatsapp } from "react-icons/fa6";
+import type { IconType } from "react-icons";
+import {
+  FaBrain,
+  FaChartLine,
+  FaCube,
+  FaDroplet,
+  FaEnvelope,
+  FaFacebook,
+  FaLinkedin,
+  FaLaptopCode,
+  FaLocationDot,
+  FaMicrosoft,
+  FaPencil,
+  FaPenNib,
+  FaPenRuler,
+  FaPersonDress,
+  FaPhone,
+  FaPinterest,
+  FaScissors,
+  FaShirt,
+  FaSwatchbook,
+  FaWhatsapp,
+  FaImage,
+} from "react-icons/fa6";
 
 /* ---------------------------------------------------------
    Theme — CSS variable-er upor nirbhor na kore explicit color
@@ -51,10 +74,16 @@ const lightTheme: Theme = {
 /* ---------------------------------------------------------
    Types
 --------------------------------------------------------- */
+interface SkillItem {
+  name: string;
+  icon: IconType;
+}
+
 interface SkillCategory {
   label: string;
+  icon: IconType;
   color: string;
-  items: string[];
+  items: SkillItem[];
 }
 
 interface SoftSkills {
@@ -106,10 +135,17 @@ interface Language {
 }
 
 interface ContactEntry {
-  icon: string;
+  icon: IconType;
   label: string;
   value: string;
   href?: string;
+}
+
+interface SocialLink {
+  label: string;
+  href: string;
+  icon: IconType;
+  external: boolean;
 }
 
 /* ---------------------------------------------------------
@@ -118,25 +154,35 @@ interface ContactEntry {
 const skillCategories: SkillCategory[] = [
   {
     label: "Design Tools",
+    icon: FaPenRuler,
     color: "#4f46e5",
-    items: ["Adobe Illustrator", "Photoshop", "CLO3D (3D Fashion)"],
+    items: [
+      { name: "Adobe Illustrator", icon: FaPenNib },
+      { name: "Photoshop", icon: FaImage },
+      { name: "CLO3D (3D Fashion)", icon: FaCube },
+    ],
   },
   {
     label: "Fashion",
+    icon: FaShirt,
     color: "#ec4899",
     items: [
-      "Fashion Illustration",
-      "Garments Construction",
-      "Fabric Knowledge",
-      "Garments Wash",
-      "Trend Forecasting",
-      "Dress Making",
+      { name: "Fashion Illustration", icon: FaPencil },
+      { name: "Garments Construction", icon: FaScissors },
+      { name: "Fabric Knowledge", icon: FaSwatchbook },
+      { name: "Garments Wash", icon: FaDroplet },
+      { name: "Trend Forecasting", icon: FaChartLine },
+      { name: "Dress Making", icon: FaPersonDress },
     ],
   },
   {
     label: "Technology",
+    icon: FaLaptopCode,
     color: "#f59e0b",
-    items: ["Microsoft Office", "Artificial Intelligence"],
+    items: [
+      { name: "Microsoft Office", icon: FaMicrosoft },
+      { name: "Artificial Intelligence", icon: FaBrain },
+    ],
   },
 ];
 
@@ -250,21 +296,53 @@ const languages: Language[] = [
 
 const contactEntries: ContactEntry[] = [
   {
-    icon: "📞",
+    icon: FaPhone,
     label: "Phone",
     value: "+8801710768932",
     href: "tel:+8801710768932",
   },
   {
-    icon: "✉",
+    icon: FaEnvelope,
     label: "Email",
     value: "Ashikislam01710@gmail.com",
     href: "mailto:Ashikislam01710@gmail.com",
   },
   {
-    icon: "📍",
+    icon: FaLocationDot,
     label: "Location",
     value: "Mallikpara, Khankhanapur, Rajbari, Dhaka",
+  },
+];
+
+/* ---------------------------------------------------------
+   Social / contact links
+   TODO: Facebook, LinkedIn, Pinterest, Instagram-er href
+   gulo nijer real profile URL diye replace koro
+--------------------------------------------------------- */
+const socialLinks: SocialLink[] = [
+  {
+    label: "WhatsApp",
+    href: "https://wa.me/8801710768932",
+    icon: FaWhatsapp,
+    external: true,
+  },
+  {
+    label: "Facebook",
+    href: "https://facebook.com/your-username",
+    icon: FaFacebook,
+    external: true,
+  },
+  {
+    label: "LinkedIn",
+    href: "https://linkedin.com/in/your-username",
+    icon: FaLinkedin,
+    external: true,
+  },
+  {
+    label: "Pinterest",
+    href: "https://pinterest.com/your-username",
+    icon: FaPinterest,
+    external: true,
   },
 ];
 
@@ -282,7 +360,7 @@ function SectionCard({
 }) {
   return (
     <div
-      className={`rounded-xl p-5 ${className}`}
+      className={`rounded-xl p-4 sm:p-5 ${className}`}
       style={{
         backgroundColor: theme.card,
         border: `1px solid ${theme.border}`,
@@ -310,16 +388,25 @@ function SectionLabel({
   );
 }
 
-function TagBadge({ label, color }: { label: string; color: string }) {
+function TagBadge({
+  label,
+  color,
+  icon: Icon,
+}: {
+  label: string;
+  color: string;
+  icon?: IconType;
+}) {
   return (
     <span
-      className="inline-block text-xs px-2.5 py-1 rounded-full font-medium border"
+      className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium border"
       style={{
         color,
         borderColor: color + "33",
         backgroundColor: color + "12",
       }}
     >
+      {Icon && <Icon className="flex-shrink-0 text-[11px]" />}
       {label}
     </span>
   );
@@ -327,20 +414,24 @@ function TagBadge({ label, color }: { label: string; color: string }) {
 
 function SkillGroup({
   label,
+  icon: Icon,
   items,
   color,
 }: {
   label: string;
-  items: string[];
+  icon: IconType;
+  items: SkillItem[];
   color: string;
 }) {
   return (
-    <div className="mb-4">
+    <div className="mb-4 last:mb-0">
       <div className="flex items-center gap-2 mb-2">
         <span
-          className="w-2 h-2 rounded-full flex-shrink-0"
-          style={{ backgroundColor: color }}
-        />
+          className="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center"
+          style={{ backgroundColor: color + "1a", color }}
+        >
+          <Icon className="text-[11px]" />
+        </span>
         <span
           className="text-xs font-semibold tracking-wider uppercase"
           style={{ color }}
@@ -348,12 +439,46 @@ function SkillGroup({
           {label}
         </span>
       </div>
-      <div className="flex flex-wrap gap-1.5 pl-4">
-        {items.map((s) => (
-          <TagBadge key={s} label={s} color={color} />
+      <div className="flex flex-wrap gap-1.5 pl-8">
+        {items.map((item) => (
+          <TagBadge
+            key={item.name}
+            label={item.name}
+            color={color}
+            icon={item.icon}
+          />
         ))}
       </div>
     </div>
+  );
+}
+
+/* Compact round icon button — contact icons-er moto neutral look.
+   Hover e shudhu primary tint, brand color nei. */
+function SocialIconButton({ link, theme }: { link: SocialLink; theme: Theme }) {
+  const [active, setActive] = useState(false);
+  const Icon = link.icon;
+
+  return (
+    <a
+      href={link.href}
+      aria-label={link.label}
+      title={link.label}
+      {...(link.external
+        ? { target: "_blank", rel: "noopener noreferrer" }
+        : {})}
+      onMouseEnter={() => setActive(true)}
+      onMouseLeave={() => setActive(false)}
+      onFocus={() => setActive(true)}
+      onBlur={() => setActive(false)}
+      className="flex items-center justify-center w-10 h-10 sm:w-9 sm:h-9 rounded-full transition-colors duration-200 active:scale-95 outline-none"
+      style={{
+        backgroundColor: active ? theme.primary : theme.secondary,
+        color: active ? theme.primaryForeground : theme.secondaryForeground,
+      }}
+    >
+      <Icon className="text-base" />
+    </a>
   );
 }
 
@@ -366,7 +491,7 @@ export default function ProfilePage() {
 
   return (
     <div
-      className="min-h-screen py-6 px-4 transition-colors duration-300"
+      className="min-h-screen py-4 sm:py-6 px-3 sm:px-4 transition-colors duration-300"
       style={{ backgroundColor: theme.background }}
     >
       {/* Dark mode toggle */}
@@ -387,25 +512,27 @@ export default function ProfilePage() {
       <div className="max-w-6xl mx-auto space-y-4">
         {/* ── HEADER CARD ── */}
         <SectionCard theme={theme}>
-          <div className="flex flex-col sm:flex-row gap-5 items-start">
-            <div className="relative flex-shrink-0">
-              <div className="w-24 h-24 rounded-xl flex items-center justify-center text-3xl font-black select-none">
-                <Image
-                  src="/images/profile.jpg"
-                  alt="Profile"
-                  width={96}
-                  height={96}
-                  className="rounded-xl"
-                />
-              </div>
+          {/* Mobile: center stacked · Desktop: row */}
+          <div className="flex flex-col md:flex-row gap-4 md:gap-5 items-center md:items-start text-center md:text-left">
+            {/* Photo — desktop e header content er height-er sathe fit hoy */}
+            <div className="relative flex-shrink-0 w-28 h-28 md:w-36 md:h-auto md:min-h-[9rem] md:self-stretch">
+              <Image
+                src="/images/profile.jpg"
+                alt="Mustafijur Rahaman"
+                fill
+                sizes="(min-width: 768px) 144px, 112px"
+                className="rounded-xl object-cover"
+                priority
+              />
               <span
                 className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-green-500"
                 style={{ border: `2px solid ${theme.card}` }}
               />
             </div>
-            <div className="flex-1">
+
+            <div className="flex-1 min-w-0">
               <h1
-                className="text-2xl font-bold"
+                className="text-xl sm:text-2xl font-bold"
                 style={{ color: theme.foreground }}
               >
                 Mustafijur Rahaman
@@ -416,65 +543,67 @@ export default function ProfilePage() {
               >
                 Fashion Designer · 3D CLO Designer · Fashion Illustrator
               </p>
-              <div className="flex items-center gap-3 mt-1.5 text-sm flex-wrap">
-                <span style={{ color: theme.mutedForeground }}>
-                  Khankhanapur, Rajbari, Dhaka
-                </span>
-                <span className="font-medium" style={{ color: "#22c55e" }}>
-                  ● Open to opportunities
-                </span>
-              </div>
               <p
-                className="mt-3 text-sm leading-relaxed"
-                style={{ color: theme.cardForeground }}
+                className="mt-1.5 text-sm font-medium"
+                style={{ color: "#22c55e" }}
               >
-                Fashion designing student with a passion for creating innovative
-                and stylish clothing. Proven ability to sketch, design, and sew
-                garments. Expertise in Adobe Illustrator, Photoshop, and CLO3D
-                3D fashion design.
+                ● Open to opportunities
               </p>
-              <div className="flex flex-wrap gap-2 mt-4">
-                <a
-                  href="tel:+8801710768932"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90"
-                  style={{
-                    backgroundColor: theme.primary,
-                    color: theme.primaryForeground,
-                  }}
-                >
-                  <FaFacebook className="" />
-                  facebook
-                </a>
 
-                <span
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
-                  style={{
-                    backgroundColor: theme.secondary,
-                    border: `1px solid ${theme.border}`,
-                    color: theme.foreground,
-                  }}
-                >
-                  <FaLinkedin className="" />
-                  LinkedIn
-                </span>
-                <span
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
-                  style={{
-                    backgroundColor: theme.secondary,
-                    border: `1px solid ${theme.border}`,
-                    color: theme.foreground,
-                  }}
-                >
-                  <FaWhatsapp className="" />
-                  WhatsApp
-                </span>
+              {/* Contact / social icons — compact, wraps on small screens */}
+              <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-4">
+                {socialLinks.map((link) => (
+                  <SocialIconButton
+                    key={link.label}
+                    link={link}
+                    theme={theme}
+                  />
+                ))}
               </div>
             </div>
+
+            {/* Contact info — right side on desktop, below on mobile */}
+            <ul
+              className="w-full md:w-[270px] lg:w-[280px] md:flex-shrink-0 md:self-stretch md:flex md:flex-col md:justify-center md:pl-6 lg:pl-5 md:border-l border-t md:border-t-0 pt-4 md:pt-0 mt-1 md:mt-0 space-y-3 text-xs sm:text-sm"
+              style={{ borderColor: theme.border }}
+            >
+              {contactEntries.map((c) => {
+                const Icon = c.icon;
+                const Row = c.href ? "a" : "div";
+                return (
+                  <li
+                    key={c.label}
+                    className="flex justify-center md:justify-start"
+                  >
+                    <Row
+                      {...(c.href ? { href: c.href } : {})}
+                      className={`flex items-start gap-3 text-left min-w-0 ${
+                        c.href ? "hover:underline" : ""
+                      }`}
+                      style={{ color: theme.cardForeground }}
+                    >
+                      <span
+                        className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: theme.secondary }}
+                      >
+                        <Icon
+                          className="text-[11px]"
+                          style={{ color: theme.secondaryForeground }}
+                        />
+                      </span>
+                      <span className="min-w-0 break-words leading-snug py-1">
+                        {c.value}
+                      </span>
+                    </Row>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </SectionCard>
 
         {/* ── TWO COLUMN ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-4">
           {/* LEFT COLUMN */}
           <div className="space-y-4">
             {/* About */}
@@ -523,7 +652,7 @@ export default function ProfilePage() {
                         >
                           {exp.title}
                         </h3>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                           <span
                             className="text-xs font-medium"
                             style={{ color: theme.primary }}
@@ -720,7 +849,7 @@ export default function ProfilePage() {
                     </p>
                     <a
                       href={`mailto:${r.email}`}
-                      className="text-xs mt-1 block hover:underline"
+                      className="text-xs mt-1 block hover:underline break-all"
                       style={{ color: theme.secondaryForeground }}
                     >
                       {r.email}
@@ -749,6 +878,7 @@ export default function ProfilePage() {
                 <SkillGroup
                   key={cat.label}
                   label={cat.label}
+                  icon={cat.icon}
                   items={cat.items}
                   color={cat.color}
                 />
@@ -830,47 +960,6 @@ export default function ProfilePage() {
                         className="h-full rounded-full"
                         style={{ width: `${l.pct}%`, backgroundColor: l.color }}
                       />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </SectionCard>
-
-            {/* Contact */}
-            <SectionCard theme={theme}>
-              <SectionLabel theme={theme}>Contact</SectionLabel>
-              <div className="space-y-3">
-                {contactEntries.map((c) => (
-                  <div key={c.label} className="flex items-start gap-3">
-                    <div
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0 mt-0.5"
-                      style={{ backgroundColor: theme.secondary }}
-                    >
-                      {c.icon}
-                    </div>
-                    <div className="min-w-0">
-                      <p
-                        className="text-xs"
-                        style={{ color: theme.mutedForeground }}
-                      >
-                        {c.label}
-                      </p>
-                      {c.href ? (
-                        <a
-                          href={c.href}
-                          className="text-xs font-medium break-all hover:underline"
-                          style={{ color: theme.foreground }}
-                        >
-                          {c.value}
-                        </a>
-                      ) : (
-                        <p
-                          className="text-xs font-medium"
-                          style={{ color: theme.foreground }}
-                        >
-                          {c.value}
-                        </p>
-                      )}
                     </div>
                   </div>
                 ))}
