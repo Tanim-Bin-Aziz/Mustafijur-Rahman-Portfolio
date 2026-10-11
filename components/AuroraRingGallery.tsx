@@ -38,7 +38,7 @@ const round2 = (v: number) => Math.round(v * 100) / 100; // subpixel jitter komb
 export default function AuroraRingGallery({
   items,
   heading = "Showcase Gallery",
-  subheading = "Explore 300+ curated luxury residences, commercial spaces, villas, and investment-ready developments.",
+  subheading = "Explore garments, textile studies, print artworks and collection looks from the atelier.",
   rx = 620,
   ry = 190,
   cardWidth = 46,
