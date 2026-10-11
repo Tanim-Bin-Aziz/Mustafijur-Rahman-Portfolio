@@ -416,13 +416,22 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
                 ),
               )}
 
-              {isLoggedIn && (
+              {isLoggedIn ? (
                 <a
                   href="/dashboard"
                   onClick={() => setOpen(false)}
                   className="border-b border-cream/5 py-3 text-base font-medium text-cream/60 transition-colors duration-300 hover:text-[#8DB355]"
                 >
                   Dashboard
+                </a>
+              ) : (
+                <a
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 border-b border-cream/5 py-3 text-base font-medium text-cream/60 transition-colors duration-300 hover:text-[#8DB355]"
+                >
+                  <User size={17} />
+                  Login
                 </a>
               )}
 

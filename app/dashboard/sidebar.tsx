@@ -2,12 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolderKanban, Images, Image as ImageIcon, Video } from "lucide-react";
+import {
+  FolderKanban,
+  IdCard,
+  Images,
+  Image as ImageIcon,
+  Video,
+} from "lucide-react";
 
 const navItems = [
   { name: "Project Management", href: "/dashboard/projects", icon: FolderKanban },
   { name: "Picture Management", href: "/dashboard/pictures", icon: ImageIcon },
   { name: "Showcase Management", href: "/dashboard/showcase", icon: Images },
+  { name: "Profile Management", href: "/dashboard/profile", icon: IdCard },
   { name: "Video Management", href: "/dashboard/videos", icon: Video },
 ];
 
