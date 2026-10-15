@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Award,
+  Clapperboard,
+  FileText,
   FolderKanban,
   IdCard,
   Images,
@@ -14,6 +17,9 @@ const navItems = [
   { name: "Project Management", href: "/dashboard/projects", icon: FolderKanban },
   { name: "Picture Management", href: "/dashboard/pictures", icon: ImageIcon },
   { name: "Showcase Management", href: "/dashboard/showcase", icon: Images },
+  { name: "Certificate Management", href: "/dashboard/certificates", icon: Award },
+  { name: "CV Management", href: "/dashboard/cv", icon: FileText },
+  { name: "CLO 3D Management", href: "/dashboard/clo3d", icon: Clapperboard },
   { name: "Profile Management", href: "/dashboard/profile", icon: IdCard },
   { name: "Video Management", href: "/dashboard/videos", icon: Video },
 ];

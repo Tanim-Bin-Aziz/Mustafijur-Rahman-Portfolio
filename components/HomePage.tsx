@@ -17,8 +17,15 @@ import PixelWarpGallery from "@/components/PixelWarpGallery";
 import ImageDisplay from "@/components/ImageDisplay";
 import AuroraRingGallery from "@/components/AuroraRingGallery";
 import type { ShowcaseRingItem } from "@/data/showcase";
+import type { Certificate } from "@/lib/certificates";
 
-export default function HomePage({ items }: { items: ShowcaseRingItem[] }) {
+export default function HomePage({
+  items,
+  certificates,
+}: {
+  items: ShowcaseRingItem[];
+  certificates: Certificate[];
+}) {
   const [loading, setLoading] = useState(true);
 
   return (
@@ -46,7 +53,7 @@ export default function HomePage({ items }: { items: ShowcaseRingItem[] }) {
           autoplay
         /> */}
         <PixelWarpGallery />
-        <Certifications />
+        <Certifications certificates={certificates} />
         <Experience />
         <Testimonials />
         <Contact />

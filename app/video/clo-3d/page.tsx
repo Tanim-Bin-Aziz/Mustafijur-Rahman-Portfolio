@@ -1,9 +1,11 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import VideoGallerySystem from "@/components/VideoGallerySystem";
-import { CLO3D_VIDEOS, CLO3D_FOLDERS } from "@/data/video";
+import { getClo3dGallery } from "@/lib/clo3d";
 
-export default function CLO3DPage() {
+export default async function CLO3DPage() {
+  const { items, folders } = await getClo3dGallery();
+
   return (
     <>
       <Nav />
@@ -14,8 +16,8 @@ export default function CLO3DPage() {
           </h1>
           <VideoGallerySystem
             title="CLO 3D"
-            items={CLO3D_VIDEOS}
-            folders={CLO3D_FOLDERS}
+            items={items}
+            folders={folders}
           />
         </div>
       </main>

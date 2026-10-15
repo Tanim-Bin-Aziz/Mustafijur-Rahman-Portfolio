@@ -4,6 +4,7 @@ export const STORAGE_BUCKETS = {
   cover: "project-covers",
   image: "project-images",
   pdf: "project-pdfs",
+  video: "project-videos",
 } as const;
 
 function safeFileName(name: string) {
@@ -49,4 +50,8 @@ export function uploadProjectImage(file: File, folder: string) {
 
 export function uploadProjectPdf(file: File, folder: string) {
   return uploadToBucket(STORAGE_BUCKETS.pdf, file, folder);
+}
+
+export function uploadProjectVideo(file: File, folder: string) {
+  return uploadToBucket(STORAGE_BUCKETS.video, file, folder);
 }

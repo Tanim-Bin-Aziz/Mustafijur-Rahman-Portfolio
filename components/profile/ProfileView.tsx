@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Image from "next/image";
 import type { IconType } from "react-icons";
 import Nav from "@/components/Nav";
+import { loadFullIconMap, type IconMap } from "@/lib/icons";
 import {
   PROFILE_SECTIONS,
-  resolveIcon,
+  resolveIconName,
   type ProfileData,
 } from "@/data/profile";
 
@@ -99,10 +100,12 @@ function TagBadge({
   label,
   color,
   icon: Icon,
+  iconImage,
 }: {
   label: string;
   color: string;
   icon?: IconType;
+  iconImage?: string;
 }) {
   return (
     <span
@@ -113,7 +116,19 @@ function TagBadge({
         backgroundColor: color + "12",
       }}
     >
-      {Icon && <Icon className="flex-shrink-0 text-[11px]" />}
+      {iconImage ? (
+        <span className="relative h-3.5 w-3.5 flex-shrink-0">
+          <Image
+            src={iconImage}
+            alt={label}
+            fill
+            sizes="14px"
+            className="object-contain"
+          />
+        </span>
+      ) : (
+        Icon && <Icon className="flex-shrink-0 text-[11px]" />
+      )}
       {label}
     </span>
   );
@@ -122,22 +137,36 @@ function TagBadge({
 function SkillGroup({
   label,
   icon: Icon,
+  iconImage,
   items,
   color,
+  resolveIcon,
 }: {
   label: string;
   icon: IconType;
-  items: { name: string; icon: string }[];
+  iconImage?: string;
+  items: { name: string; icon: string; iconImage?: string }[];
   color: string;
+  resolveIcon: (name: string) => IconType;
 }) {
   return (
     <div className="mb-4 last:mb-0">
       <div className="flex items-center gap-2 mb-2">
         <span
-          className="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center"
+          className="relative flex-shrink-0 w-6 h-6 overflow-hidden rounded-md flex items-center justify-center"
           style={{ backgroundColor: color + "1a", color }}
         >
-          <Icon className="text-[11px]" />
+          {iconImage ? (
+            <Image
+              src={iconImage}
+              alt={label}
+              fill
+              sizes="24px"
+              className="object-contain"
+            />
+          ) : (
+            <Icon className="text-[11px]" />
+          )}
         </span>
         <span
           className="text-xs font-semibold tracking-wider uppercase"
@@ -153,6 +182,7 @@ function SkillGroup({
             label={item.name}
             color={color}
             icon={resolveIcon(item.icon)}
+            iconImage={item.iconImage}
           />
         ))}
       </div>
@@ -162,13 +192,14 @@ function SkillGroup({
 
 function SocialIconButton({
   link,
+  icon: Icon,
   theme,
 }: {
   link: { label: string; href: string; icon: string; external: boolean };
+  icon: IconType;
   theme: Theme;
 }) {
   const [active, setActive] = useState(false);
-  const Icon = resolveIcon(link.icon);
 
   return (
     <a
@@ -198,7 +229,21 @@ function SocialIconButton({
 --------------------------------------------------------- */
 export default function ProfileView({ profile }: { profile: ProfileData }) {
   const [dark, setDark] = useState(true);
+  const [extraIcons, setExtraIcons] = useState<IconMap | null>(null);
   const theme = dark ? darkTheme : lightTheme;
+
+  useEffect(() => {
+    let cancelled = false;
+    loadFullIconMap().then((map) => {
+      if (!cancelled) setExtraIcons(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const iconFor = (name: string) =>
+    resolveIconName(name, extraIcons ?? undefined);
 
   const isVisible = (key: string) => profile.sectionVisibility[key] !== false;
 
@@ -486,9 +531,11 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
               <SkillGroup
                 key={cat.label}
                 label={cat.label}
-                icon={resolveIcon(cat.icon)}
+                icon={iconFor(cat.icon)}
+                iconImage={cat.iconImage}
                 items={cat.items}
                 color={cat.color}
+                resolveIcon={iconFor}
               />
             ))}
           </SectionCard>
@@ -621,7 +668,7 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
                   alt={profile.name}
                   fill
                   sizes="(min-width: 768px) 144px, 112px"
-                  className="rounded-xl object-cover"
+                  className="rounded-xl object-contain"
                   priority
                 />
                 <span
@@ -655,6 +702,7 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
                     <SocialIconButton
                       key={link.label}
                       link={link}
+                      icon={iconFor(link.icon)}
                       theme={theme}
                     />
                   ))}
@@ -666,7 +714,7 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
                 style={{ borderColor: theme.border }}
               >
                 {profile.contactEntries.map((c) => {
-                  const Icon = resolveIcon(c.icon);
+                  const Icon = iconFor(c.icon);
                   const Row = c.href ? "a" : "div";
                   return (
                     <li

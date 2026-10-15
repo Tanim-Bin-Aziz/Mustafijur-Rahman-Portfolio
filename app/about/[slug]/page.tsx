@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import ProfileView from "@/components/profile/ProfileView";
+import { getProfile } from "@/lib/profile";
 import { ABOUT_ITEMS } from "@/data/about";
 
 export default async function AboutDetailPage({
@@ -13,6 +15,11 @@ export default async function AboutDetailPage({
   const item = ABOUT_ITEMS.find((a) => a.slug === slug);
 
   if (!item) return notFound();
+
+  if (slug === "profile") {
+    const profile = await getProfile();
+    return <ProfileView profile={profile} />;
+  }
 
   return (
     <>

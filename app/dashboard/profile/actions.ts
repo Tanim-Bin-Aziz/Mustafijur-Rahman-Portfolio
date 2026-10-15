@@ -43,6 +43,46 @@ export async function updateProfile(
       draft.avatar = await uploadProjectImage(logoFile, "profile");
     }
 
+    const skillLogoUrls = new Map<string, string>();
+    const skillTagLogoUrls = new Map<string, string>();
+    for (const [fieldKey, value] of formData.entries()) {
+      if (!(value instanceof File) || value.size <= 0) continue;
+      if (fieldKey.startsWith("skill-tag-icon-")) {
+        skillTagLogoUrls.set(
+          fieldKey.slice("skill-tag-icon-".length),
+          await uploadProjectImage(value, "profile-skills"),
+        );
+      } else if (fieldKey.startsWith("skill-icon-")) {
+        skillLogoUrls.set(
+          fieldKey.slice("skill-icon-".length),
+          await uploadProjectImage(value, "profile-skills"),
+        );
+      }
+    }
+
+    if (skillLogoUrls.size > 0 || skillTagLogoUrls.size > 0) {
+      for (const category of draft.skillCategories) {
+        if (
+          typeof category.iconImage === "string" &&
+          category.iconImage.startsWith("upload:")
+        ) {
+          const url = skillLogoUrls.get(category.iconImage.slice(7));
+          if (url) category.iconImage = url;
+          else delete category.iconImage;
+        }
+        for (const item of category.items) {
+          if (
+            typeof item.iconImage === "string" &&
+            item.iconImage.startsWith("upload:")
+          ) {
+            const url = skillTagLogoUrls.get(item.iconImage.slice(7));
+            if (url) item.iconImage = url;
+            else delete item.iconImage;
+          }
+        }
+      }
+    }
+
     const { ok, error } = await saveProfile(draft);
     if (!ok) return { error: error ?? "Could not save the profile.", saved: false };
   } catch (error) {

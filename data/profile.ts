@@ -59,18 +59,59 @@ export function resolveIcon(name: string): IconType {
   return PROFILE_ICONS[name] ?? FaStar;
 }
 
+export function findIconName(
+  name: string,
+  extra?: Record<string, IconType>,
+): string | null {
+  if (!name) return null;
+  if (PROFILE_ICONS[name]) return name;
+  if (!extra) return null;
+  if (extra[name]) return name;
+
+  const lower = name.toLowerCase();
+  let lucideMatch: string | null = null;
+  let faMatch: string | null = null;
+  for (const key of Object.keys(extra)) {
+    const keyLower = key.toLowerCase();
+    if (keyLower === lower) return key;
+    if (keyLower.endsWith(lower)) {
+      if (key.startsWith("Lu")) {
+        if (!lucideMatch || key.length < lucideMatch.length) {
+          lucideMatch = key;
+        }
+      } else if (key.startsWith("Fa")) {
+        if (!faMatch || key.length < faMatch.length) {
+          faMatch = key;
+        }
+      }
+    }
+  }
+  return lucideMatch ?? faMatch;
+}
+
+export function resolveIconName(
+  name: string,
+  extra?: Record<string, IconType>,
+): IconType {
+  const found = findIconName(name, extra);
+  if (!found) return FaStar;
+  return (extra && extra[found]) ?? PROFILE_ICONS[found] ?? FaStar;
+}
+
 /* ---------------------------------------------------------
    Types
 --------------------------------------------------------- */
 export interface ProfileSkillItem {
   name: string;
   icon: string;
+  iconImage?: string;
 }
 
 export interface ProfileSkillCategory {
   label: string;
   icon: string;
   color: string;
+  iconImage?: string;
   items: ProfileSkillItem[];
 }
 

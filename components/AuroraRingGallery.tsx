@@ -35,13 +35,19 @@ const clamp = (v: number, min: number, max: number) =>
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const round2 = (v: number) => Math.round(v * 100) / 100; // subpixel jitter kombe
 
+// Natural size onujayi max bounds-er moddhe fit koro — crop chara full image dekhar jonno
+function fitInto(nw: number, nh: number, maxW: number, maxH: number) {
+  const scale = Math.min(maxW / nw, maxH / nh);
+  return { width: Math.round(nw * scale), height: Math.round(nh * scale) };
+}
+
 export default function AuroraRingGallery({
   items,
   heading = "Showcase Gallery",
   subheading = "Explore garments, textile studies, print artworks and collection looks from the atelier.",
   rx = 620,
-  ry = 190,
-  cardWidth = 46,
+  ry = 220,
+  cardWidth = 64,
   cardHeight = 92,
   speed = 2, // deg/sec
 }: AuroraRingGalleryProps) {
@@ -60,6 +66,8 @@ export default function AuroraRingGallery({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [centerIndex, setCenterIndex] = useState(0); // default-e center-e thaka card — auto-follow
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  // Center popup — image er natural aspect ratio onujayi size adapt kore (crop na)
+  const [popupDims, setPopupDims] = useState({ width: 260, height: 190 });
   // Design size shobshomoy desktop-er moto fixed — mobile e shudhu pura stage
   // ta uniform scale hoy (ring, card, popup, text shob ekshathe)
   const dims = useMemo(
@@ -243,9 +251,15 @@ export default function AuroraRingGallery({
 
   useEffect(() => clearLeaveTimer, []);
 
-  if (!n) return null;
   // hover thakle hover-kora item, nahole jeta center cross korche shetai dekhabe
   const displayIndex = hoveredIndex !== null ? hoveredIndex : centerIndex;
+
+  // Image change korle popup size abar load-er por set hobe
+  useEffect(() => {
+    setPopupDims({ width: 260, height: 190 });
+  }, [displayIndex]);
+
+  if (!n) return null;
   const displayed = items[displayIndex];
   const lightboxOpen = lightboxIndex !== null;
 
@@ -304,7 +318,7 @@ export default function AuroraRingGallery({
                 src={item.src}
                 alt={item.title}
                 fill
-                sizes="120px"
+                sizes="150px"
                 className="object-cover pointer-events-none"
                 loading="lazy"
               />
@@ -314,10 +328,10 @@ export default function AuroraRingGallery({
           {/* Center popup — default-e jei card front cross korche shetai dekhay,
             hover korle override hoy, hover shorai nile abar auto-follow-e fire ashe */}
           {displayed && (
-            <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] flex flex-col items-center animate-fade-in">
+            <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -mt-9 z-[500] flex flex-col items-center animate-fade-in">
               <div
                 className="pointer-events-auto relative overflow-hidden rounded-lg shadow-2xl cursor-pointer"
-                style={{ width: 260, height: 190 }}
+                style={{ width: popupDims.width, height: popupDims.height }}
                 onMouseEnter={handlePopupEnter}
                 onMouseLeave={scheduleResume}
                 onClick={() => handleClick(displayIndex)}
@@ -327,9 +341,17 @@ export default function AuroraRingGallery({
                   src={displayed.src}
                   alt={displayed.title}
                   fill
-                  sizes="260px"
+                  sizes="360px"
                   className="object-cover"
                   priority={!hasMountedRef.current}
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    if (img.naturalWidth && img.naturalHeight) {
+                      setPopupDims(
+                        fitInto(img.naturalWidth, img.naturalHeight, 360, 280),
+                      );
+                    }
+                  }}
                 />
               </div>
               <div className="pointer-events-none mt-3 text-center">
@@ -378,6 +400,10 @@ function RingLightbox({
 
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  // Image er natural aspect ratio onujayi container size — full image, crop chara
+  const [lbDims, setLbDims] = useState<{ width: number; height: number } | null>(
+    null,
+  );
   const isDragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
 
@@ -388,9 +414,10 @@ function RingLightbox({
     setOffset({ x: 0, y: 0 });
   };
 
-  // Image change korle zoom reset
+  // Image change korle zoom + size reset
   useEffect(() => {
     resetZoom();
+    setLbDims(null);
   }, [index]);
 
   const handleWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
@@ -510,12 +537,15 @@ function RingLightbox({
         onMouseLeave={stopDragging}
       >
         <div
-          className="relative w-full max-w-4xl aspect-[16/10] rounded-md overflow-hidden shadow-2xl"
+          className="relative rounded-md overflow-hidden shadow-2xl"
           style={{
             transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
             transition: isDragging.current
               ? "none"
               : "transform 0.15s ease-out",
+            ...(lbDims
+              ? { width: lbDims.width, height: lbDims.height }
+              : { width: "100%", maxWidth: 896, aspectRatio: "16 / 10" }),
           }}
         >
           <Image
@@ -526,12 +556,24 @@ function RingLightbox({
             className="object-cover pointer-events-none"
             draggable={false}
             priority
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              if (img.naturalWidth && img.naturalHeight) {
+                const maxW = Math.min(896, window.innerWidth * 0.92);
+                const maxH = Math.min(560, window.innerHeight * 0.62);
+                setLbDims(
+                  fitInto(img.naturalWidth, img.naturalHeight, maxW, maxH),
+                );
+              }
+            }}
           />
-          <div className="absolute bottom-0 left-0 right-0 bg-black/80 px-4 py-3">
-            <span className="font-mono text-xs tracking-[0.2em] text-[#F4EEE3]/80 uppercase">
-              {item.title} · {item.category} · {item.location}
-            </span>
-          </div>
+        </div>
+
+        {/* Caption — zoom/pan korleo-i sticky thake (transform er baire) */}
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 bg-black/80 px-4 py-3 text-center">
+          <span className="font-mono text-xs tracking-[0.2em] text-[#F4EEE3]/80 uppercase">
+            {item.title} · {item.category} · {item.location}
+          </span>
         </div>
       </div>
     </div>

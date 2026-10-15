@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Reorder } from "framer-motion";
@@ -22,9 +22,12 @@ import {
   updateProfile,
   type ProfileFormState,
 } from "@/app/dashboard/profile/actions";
+import type { IconType } from "react-icons";
+import { loadFullIconMap, type IconMap } from "@/lib/icons";
 import {
   DEFAULT_PROFILE,
-  ICON_OPTIONS,
+  findIconName,
+  PROFILE_ICONS,
   PROFILE_SECTIONS,
   SECTION_LABELS,
   type ProfileData,
@@ -148,18 +151,39 @@ function IconSelect({
   value: string;
   onChange: (next: string) => void;
 }) {
+  const [dynamicIcons, setDynamicIcons] = useState<IconMap | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadFullIconMap().then((map) => {
+      if (!cancelled) setDynamicIcons(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const resolved = findIconName(value, dynamicIcons ?? undefined);
+  const Icon = resolved
+    ? (dynamicIcons?.[resolved] ?? PROFILE_ICONS[resolved])
+    : null;
+
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={fieldClass}
-    >
-      {ICON_OPTIONS.map((name) => (
-        <option key={name} value={name}>
-          {name}
-        </option>
-      ))}
-    </select>
+    <div className="flex items-center gap-2">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cream/10 bg-bg/60 text-cream/60">
+        {Icon ? (
+          <Icon size={15} />
+        ) : (
+          <span className="font-mono text-[9px] uppercase">icon</span>
+        )}
+      </span>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value.trim())}
+        placeholder="FaStar, LuHeart…"
+        className={`${fieldClass} min-w-0 flex-1`}
+      />
+    </div>
   );
 }
 
@@ -167,17 +191,19 @@ function ChipsEditor({
   label,
   items,
   onChange,
+  addToTop = false,
 }: {
   label: string;
   items: string[];
   onChange: (next: string[]) => void;
+  addToTop?: boolean;
 }) {
   const [value, setValue] = useState("");
 
   const add = () => {
     const next = value.trim();
     if (!next || items.includes(next)) return;
-    onChange([...items, next]);
+    onChange(addToTop ? [next, ...items] : [...items, next]);
     setValue("");
   };
 
@@ -232,6 +258,9 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
   const [logoPreview, setLogoPreview] = useState(profile.avatar);
   const [fileName, setFileName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const skillLogoRef = useRef<Map<string, { url: string; name: string }>>(
+    new Map(),
+  );
 
   const [state, formAction, isPending] = useActionState<
     ProfileFormState,
@@ -342,7 +371,7 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                 alt="Profile logo"
                 fill
                 sizes="96px"
-                className="object-cover"
+                className="object-contain"
               />
             </div>
 
@@ -697,55 +726,203 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                   </Field>
                 </div>
 
+                <Field label="Logo image (optional — png, jpg, etc.)">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      name={
+                        cat.iconImage?.startsWith("upload:")
+                          ? `skill-icon-${cat.iconImage.slice(7)}`
+                          : undefined
+                      }
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const key = `${Date.now()}-${Math.random()
+                          .toString(36)
+                          .slice(2, 8)}`;
+                        skillLogoRef.current.set(key, {
+                          url: URL.createObjectURL(file),
+                          name: file.name,
+                        });
+                        setDraft((p) => ({
+                          ...p,
+                          skillCategories: listMap(p.skillCategories, ci, {
+                            iconImage: `upload:${key}`,
+                          }),
+                        }));
+                      }}
+                      className={`${fieldClass} file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#8DB355]`}
+                    />
+                    {cat.iconImage && (
+                      <>
+                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border border-cream/10">
+                          <Image
+                            src={
+                              cat.iconImage.startsWith("upload:")
+                                ? (skillLogoRef.current.get(
+                                    cat.iconImage.slice(7),
+                                  )?.url ?? "")
+                                : cat.iconImage
+                            }
+                            alt={`${cat.label} logo`}
+                            fill
+                            sizes="40px"
+                            className="object-contain"
+                          />
+                        </div>
+                        <span className="min-w-0 truncate text-xs text-cream/50">
+                          {cat.iconImage.startsWith("upload:")
+                            ? skillLogoRef.current.get(cat.iconImage.slice(7))
+                                ?.name
+                            : cat.iconImage.split("/").pop()}
+                        </span>
+                        <RemoveBtn
+                          onClick={() =>
+                            setDraft((p) => ({
+                              ...p,
+                              skillCategories: listMap(p.skillCategories, ci, {
+                                iconImage: undefined,
+                              }),
+                            }))
+                          }
+                        />
+                      </>
+                    )}
+                  </div>
+                </Field>
+
                 <div className="space-y-2 border-t border-cream/10 pt-3">
                   <span className={labelClass}>Skill tags</span>
                   {cat.items.map((item, ii) => (
-                    <div key={ii} className="flex items-center gap-2">
-                      <input
-                        value={item.name}
-                        onChange={(e) =>
-                          setDraft((p) => {
-                            const categories = [...p.skillCategories];
-                            const category = { ...categories[ci] };
-                            category.items = listMap(category.items, ii, {
-                              name: e.target.value,
-                            });
-                            categories[ci] = category;
-                            return { ...p, skillCategories: categories };
-                          })
-                        }
-                        placeholder="Skill name"
-                        className={fieldClass}
-                      />
-                      <div className="w-40 shrink-0">
-                        <IconSelect
-                          value={item.icon}
-                          onChange={(icon) =>
+                    <div
+                      key={ii}
+                      className="space-y-2 rounded-lg border border-cream/10 bg-bg/40 p-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <input
+                          value={item.name}
+                          onChange={(e) =>
                             setDraft((p) => {
                               const categories = [...p.skillCategories];
                               const category = { ...categories[ci] };
                               category.items = listMap(category.items, ii, {
-                                icon,
+                                name: e.target.value,
                               });
+                              categories[ci] = category;
+                              return { ...p, skillCategories: categories };
+                            })
+                          }
+                          placeholder="Skill name"
+                          className={`${fieldClass} min-w-0 flex-1`}
+                        />
+                        <div className="w-44 shrink-0">
+                          <IconSelect
+                            value={item.icon}
+                            onChange={(icon) =>
+                              setDraft((p) => {
+                                const categories = [...p.skillCategories];
+                                const category = { ...categories[ci] };
+                                category.items = listMap(category.items, ii, {
+                                  icon,
+                                });
+                                categories[ci] = category;
+                                return { ...p, skillCategories: categories };
+                              })
+                            }
+                          />
+                        </div>
+                        <RemoveBtn
+                          onClick={() =>
+                            setDraft((p) => {
+                              const categories = [...p.skillCategories];
+                              const category = { ...categories[ci] };
+                              category.items = category.items.filter(
+                                (_, idx) => idx !== ii,
+                              );
                               categories[ci] = category;
                               return { ...p, skillCategories: categories };
                             })
                           }
                         />
                       </div>
-                      <RemoveBtn
-                        onClick={() =>
-                          setDraft((p) => {
-                            const categories = [...p.skillCategories];
-                            const category = { ...categories[ci] };
-                            category.items = category.items.filter(
-                              (_, idx) => idx !== ii,
-                            );
-                            categories[ci] = category;
-                            return { ...p, skillCategories: categories };
-                          })
-                        }
-                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          name={
+                            item.iconImage?.startsWith("upload:")
+                              ? `skill-tag-icon-${item.iconImage.slice(7)}`
+                              : undefined
+                          }
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const key = `${Date.now()}-${Math.random()
+                              .toString(36)
+                              .slice(2, 8)}`;
+                            skillLogoRef.current.set(key, {
+                              url: URL.createObjectURL(file),
+                              name: file.name,
+                            });
+                            setDraft((p) => {
+                              const categories = [...p.skillCategories];
+                              const category = { ...categories[ci] };
+                              category.items = listMap(category.items, ii, {
+                                iconImage: `upload:${key}`,
+                              });
+                              categories[ci] = category;
+                              return { ...p, skillCategories: categories };
+                            });
+                          }}
+                          className={`${fieldClass} file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#8DB355]`}
+                        />
+                        {item.iconImage && (
+                          <>
+                            <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-md border border-cream/10">
+                              <Image
+                                src={
+                                  item.iconImage.startsWith("upload:")
+                                    ? (skillLogoRef.current.get(
+                                        item.iconImage.slice(7),
+                                      )?.url ?? "")
+                                    : item.iconImage
+                                }
+                                alt={`${item.name} logo`}
+                                fill
+                                sizes="32px"
+                                className="object-contain"
+                              />
+                            </div>
+                            <span className="min-w-0 truncate text-xs text-cream/50">
+                              {item.iconImage.startsWith("upload:")
+                                ? skillLogoRef.current.get(
+                                    item.iconImage.slice(7),
+                                  )?.name
+                                : item.iconImage.split("/").pop()}
+                            </span>
+                            <button
+                              type="button"
+                              title="Remove logo"
+                              onClick={() =>
+                                setDraft((p) => {
+                                  const categories = [...p.skillCategories];
+                                  const category = { ...categories[ci] };
+                                  category.items = listMap(category.items, ii, {
+                                    iconImage: undefined,
+                                  });
+                                  categories[ci] = category;
+                                  return { ...p, skillCategories: categories };
+                                })
+                              }
+                              className="rounded-full border border-cream/10 p-1 text-cream/40 transition-colors hover:border-red-500/40 hover:text-red-400"
+                            >
+                              <X size={11} />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                   <AddBtn
@@ -908,7 +1085,6 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
             <AddBtn
               onClick={() =>
                 set("experiences", [
-                  ...draft.experiences,
                   {
                     title: "",
                     company: "",
@@ -917,6 +1093,7 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                     period: "",
                     bullets: [""],
                   },
+                  ...draft.experiences,
                 ])
               }
             >
@@ -968,7 +1145,7 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
             ))}
             <AddBtn
               onClick={() =>
-                set("awards", [...draft.awards, { title: "", desc: "" }])
+                set("awards", [{ title: "", desc: "" }, ...draft.awards])
               }
             >
               Add award
@@ -1068,7 +1245,6 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
             <AddBtn
               onClick={() =>
                 set("education", [
-                  ...draft.education,
                   {
                     degree: "",
                     institution: "",
@@ -1076,6 +1252,7 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                     grade: "",
                     current: false,
                   },
+                  ...draft.education,
                 ])
               }
             >
@@ -1090,6 +1267,7 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
             label="Hobby tags"
             items={draft.hobbies}
             onChange={(hobbies) => set("hobbies", hobbies)}
+            addToTop
           />
         </Panel>
 
@@ -1184,8 +1362,8 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
             <AddBtn
               onClick={() =>
                 set("references", [
-                  ...draft.references,
                   { name: "", role: "", company: "", email: "", phones: [""] },
+                  ...draft.references,
                 ])
               }
             >
