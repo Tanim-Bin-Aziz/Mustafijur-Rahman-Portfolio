@@ -86,8 +86,8 @@ export async function addCvDocument(
   }
 
   revalidatePath("/about/cv");
-  revalidatePath("/dashboard/cv");
-  redirect("/dashboard/cv");
+  revalidatePath("/dashboard/about");
+  redirect("/dashboard/about?saved=cv");
 }
 
 export async function editCvDocument(
@@ -131,8 +131,8 @@ export async function editCvDocument(
   }
 
   revalidatePath("/about/cv");
-  revalidatePath("/dashboard/cv");
-  redirect("/dashboard/cv");
+  revalidatePath("/dashboard/about");
+  redirect("/dashboard/about?saved=cv");
 }
 
 export async function removeCvDocument(formData: FormData) {
@@ -149,5 +149,5 @@ export async function removeCvDocument(formData: FormData) {
   await deleteCvDocument(cvId);
 
   revalidatePath("/about/cv");
-  revalidatePath("/dashboard/cv");
+  revalidatePath("/dashboard/about");
 }

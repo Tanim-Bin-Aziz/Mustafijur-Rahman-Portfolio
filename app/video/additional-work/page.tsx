@@ -1,9 +1,20 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import VideoGallerySystem from "@/components/VideoGallerySystem";
-import { ADDITIONAL_WORK_VIDEOS, ADDITIONAL_WORK_FOLDERS } from "@/data/video";
+import { ADDITIONAL_WORK_FOLDERS } from "@/data/video";
+import { getAdditionalWorkVideos } from "@/lib/video";
 
-export default function AdditionalWorkPage() {
+export default async function AdditionalWorkPage() {
+  const videos = await getAdditionalWorkVideos();
+
+  const items = videos.map((video) => ({
+    id: video.id,
+    title: video.title,
+    src: video.videoUrl,
+    date: video.videoDate,
+    folderId: "misc",
+  }));
+
   return (
     <>
       <Nav />
@@ -14,7 +25,7 @@ export default function AdditionalWorkPage() {
           </h1>
           <VideoGallerySystem
             title="Additional Work"
-            items={ADDITIONAL_WORK_VIDEOS}
+            items={items}
             folders={ADDITIONAL_WORK_FOLDERS}
           />
         </div>

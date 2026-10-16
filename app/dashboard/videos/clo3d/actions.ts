@@ -79,8 +79,8 @@ export async function addClo3dVideo(
   }
 
   revalidatePath("/video/clo-3d");
-  revalidatePath("/dashboard/clo3d");
-  redirect("/dashboard/clo3d");
+  revalidatePath("/dashboard/videos");
+  redirect("/dashboard/videos");
 }
 
 export async function editClo3dVideo(
@@ -125,8 +125,8 @@ export async function editClo3dVideo(
   }
 
   revalidatePath("/video/clo-3d");
-  revalidatePath("/dashboard/clo3d");
-  redirect("/dashboard/clo3d");
+  revalidatePath("/dashboard/videos");
+  redirect("/dashboard/videos");
 }
 
 export async function removeClo3dVideo(formData: FormData) {
@@ -143,7 +143,7 @@ export async function removeClo3dVideo(formData: FormData) {
   await deleteClo3dVideo(videoId);
 
   revalidatePath("/video/clo-3d");
-  revalidatePath("/dashboard/clo3d");
+  revalidatePath("/dashboard/videos");
 }
 
 export async function addClo3dFolder(
@@ -165,7 +165,7 @@ export async function addClo3dFolder(
   if (!id) return { error: error ?? "Could not create the folder." };
 
   revalidatePath("/video/clo-3d");
-  revalidatePath("/dashboard/clo3d");
+  revalidatePath("/dashboard/videos");
   return { error: null };
 }
 
@@ -183,5 +183,5 @@ export async function removeClo3dFolder(formData: FormData) {
   await deleteClo3dFolder(folderId);
 
   revalidatePath("/video/clo-3d");
-  revalidatePath("/dashboard/clo3d");
+  revalidatePath("/dashboard/videos");
 }

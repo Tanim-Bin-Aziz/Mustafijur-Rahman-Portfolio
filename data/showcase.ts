@@ -148,6 +148,7 @@ export interface ShowcaseRingItem {
   title: string;
   category: string;
   location: string;
+  videoUrl?: string; // optional looping background video
 }
 
 export const SHOWCASE_RING: ShowcaseRingItem[] = [

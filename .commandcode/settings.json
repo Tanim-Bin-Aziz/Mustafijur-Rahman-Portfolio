@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(Get-Item:*)",
+      "Shell(Select-Object:*)",
+      "Shell(Get-Content:*)",
+      "Shell(type:*)",
+      "Shell(findstr:*)",
+      "Shell(npx tsc --noEmit)",
+      "Shell(rmdir:*)",
+      "Shell(if:*)",
+      "Shell(else:*)",
+      "Shell(npm:*)",
+      "Shell(netstat:*)",
+      "powershell",
+      "Shell(powershell -Command \"(Get-Content -LiteralPath '.next\\types\\validator.ts' -ErrorAction SilentlyContinue | Measure-Object -Line).Lines; (Get-Content -LiteralPath '.next\\dev\\types\\validator.ts' | Measure-Object -Line).Lines\")",
+      "Shell(dir:*)",
+      "Shell(node \"%COMMANDCODE_SCRATCHPAD%\\check-db.js\")",
+      "Shell(node \"%COMMANDCODE_SCRATCHPAD%\\check-buckets.js\")",
+      "Shell(node \"%COMMANDCODE_SCRATCHPAD%\\check-showcase.js\")",
+      "Shell(for:*)",
+      "Shell(findstr /b \"=\" .env:*)",
+      "Shell(do:*)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}

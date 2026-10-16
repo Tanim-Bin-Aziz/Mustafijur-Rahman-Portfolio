@@ -7,7 +7,7 @@ import {
   addClo3dVideo,
   editClo3dVideo,
   type Clo3dFormState,
-} from "@/app/dashboard/clo3d/actions";
+} from "@/app/dashboard/videos/clo3d/actions";
 import type { Clo3dVideo, Clo3dFolder } from "@/lib/clo3d";
 
 const fieldClass =
@@ -35,11 +35,11 @@ export default function Clo3dVideoForm({
   return (
     <div className="mx-auto max-w-2xl">
       <Link
-        href="/dashboard/clo3d"
+        href="/dashboard/videos"
         className="mb-6 inline-flex items-center gap-2 text-sm text-cream/50 transition-colors hover:text-[#8DB355]"
       >
         <ArrowLeft size={15} />
-        Back to CLO 3D
+        Back to Video Management
       </Link>
 
       <h1 className="font-serif text-2xl font-semibold text-cream">
@@ -178,7 +178,7 @@ export default function Clo3dVideoForm({
           </button>
 
           <Link
-            href="/dashboard/clo3d"
+            href="/dashboard/videos"
             className="rounded-full border border-cream/10 px-6 py-2.5 text-sm text-cream/60 transition-colors hover:border-cream/25 hover:text-cream"
           >
             Cancel

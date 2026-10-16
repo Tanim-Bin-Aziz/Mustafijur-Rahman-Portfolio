@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { FolderPlus, Loader2 } from "lucide-react";
-import { addClo3dFolder, type Clo3dFormState } from "@/app/dashboard/clo3d/actions";
+import { addClo3dFolder, type Clo3dFormState } from "@/app/dashboard/videos/clo3d/actions";
 
 export default function Clo3dFolderAdd() {
   const [state, formAction, isPending] = useActionState<

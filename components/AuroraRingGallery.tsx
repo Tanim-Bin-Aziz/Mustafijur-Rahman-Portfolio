@@ -17,6 +17,7 @@ export interface RingItem {
   title: string;
   category: string; // jemon: "VILLAS", "LUXURY APARTMENTS"
   location: string; // jemon: "DUBAI", "MUMBAI"
+  videoUrl?: string; // optional looping background video
 }
 
 interface AuroraRingGalleryProps {
@@ -314,14 +315,26 @@ export default function AuroraRingGallery({
                 backfaceVisibility: "hidden",
               }}
             >
-              <Image
-                src={item.src}
-                alt={item.title}
-                fill
-                sizes="150px"
-                className="object-cover pointer-events-none"
-                loading="lazy"
-              />
+              {item.videoUrl ? (
+                <video
+                  src={item.videoUrl}
+                  poster={item.src}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={item.src}
+                  alt={item.title}
+                  fill
+                  sizes="150px"
+                  className="object-cover pointer-events-none"
+                  loading="lazy"
+                />
+              )}
             </button>
           ))}
 
@@ -336,23 +349,41 @@ export default function AuroraRingGallery({
                 onMouseLeave={scheduleResume}
                 onClick={() => handleClick(displayIndex)}
               >
-                <Image
-                  key={displayIndex}
-                  src={displayed.src}
-                  alt={displayed.title}
-                  fill
-                  sizes="360px"
-                  className="object-cover"
-                  priority={!hasMountedRef.current}
-                  onLoad={(e) => {
-                    const img = e.currentTarget;
-                    if (img.naturalWidth && img.naturalHeight) {
-                      setPopupDims(
-                        fitInto(img.naturalWidth, img.naturalHeight, 360, 280),
-                      );
-                    }
-                  }}
-                />
+                {displayed.videoUrl ? (
+                  <video
+                    key={displayIndex}
+                    src={displayed.videoUrl}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 h-full w-full object-cover"
+                    onLoadedMetadata={(e) => {
+                      const v = e.currentTarget;
+                      if (v.videoWidth && v.videoHeight) {
+                        setPopupDims(fitInto(v.videoWidth, v.videoHeight, 360, 280));
+                      }
+                    }}
+                  />
+                ) : (
+                  <Image
+                    key={displayIndex}
+                    src={displayed.src}
+                    alt={displayed.title}
+                    fill
+                    sizes="360px"
+                    className="object-cover"
+                    priority={!hasMountedRef.current}
+                    onLoad={(e) => {
+                      const img = e.currentTarget;
+                      if (img.naturalWidth && img.naturalHeight) {
+                        setPopupDims(
+                          fitInto(img.naturalWidth, img.naturalHeight, 360, 280),
+                        );
+                      }
+                    }}
+                  />
+                )}
               </div>
               <div className="pointer-events-none mt-3 text-center">
                 <p className="font-bold text-[#0B0908] text-lg">
@@ -548,25 +579,44 @@ function RingLightbox({
               : { width: "100%", maxWidth: 896, aspectRatio: "16 / 10" }),
           }}
         >
-          <Image
-            src={item.src}
-            alt={item.title}
-            fill
-            sizes="(max-width: 1024px) 90vw, 900px"
-            className="object-cover pointer-events-none"
-            draggable={false}
-            priority
-            onLoad={(e) => {
-              const img = e.currentTarget;
-              if (img.naturalWidth && img.naturalHeight) {
-                const maxW = Math.min(896, window.innerWidth * 0.92);
-                const maxH = Math.min(560, window.innerHeight * 0.62);
-                setLbDims(
-                  fitInto(img.naturalWidth, img.naturalHeight, maxW, maxH),
-                );
-              }
-            }}
-          />
+          {item.videoUrl ? (
+            <video
+              src={item.videoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 h-full w-full object-cover"
+              onLoadedMetadata={(e) => {
+                const v = e.currentTarget;
+                if (v.videoWidth && v.videoHeight) {
+                  const maxW = Math.min(896, window.innerWidth * 0.92);
+                  const maxH = Math.min(560, window.innerHeight * 0.62);
+                  setLbDims(fitInto(v.videoWidth, v.videoHeight, maxW, maxH));
+                }
+              }}
+            />
+          ) : (
+            <Image
+              src={item.src}
+              alt={item.title}
+              fill
+              sizes="(max-width: 1024px) 90vw, 900px"
+              className="object-cover pointer-events-none"
+              draggable={false}
+              priority
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                if (img.naturalWidth && img.naturalHeight) {
+                  const maxW = Math.min(896, window.innerWidth * 0.92);
+                  const maxH = Math.min(560, window.innerHeight * 0.62);
+                  setLbDims(
+                    fitInto(img.naturalWidth, img.naturalHeight, maxW, maxH),
+                  );
+                }
+              }}
+            />
+          )}
         </div>
 
         {/* Caption — zoom/pan korleo-i sticky thake (transform er baire) */}

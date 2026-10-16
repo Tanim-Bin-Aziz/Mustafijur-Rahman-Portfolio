@@ -71,10 +71,10 @@ export default async function AboutCvPage() {
                 here.
               </p>
               <Link
-                href="/dashboard/cv"
+                href="/dashboard/about"
                 className="mt-6 inline-flex rounded-full border border-[#8DB355]/40 px-6 py-2.5 text-sm text-[#8DB355] transition-colors hover:bg-[#8DB355]/10"
               >
-                Go to CV management
+                Go to About Cards
               </Link>
             </div>
           )}

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import { VIDEO_ITEMS } from "@/data/video";
+import { getPageVideo, toVideoItem } from "@/lib/video";
 import SingleVideoPage from "@/components/SingleVideoPage";
 
 export default async function VideoDetailPage({
@@ -10,14 +10,14 @@ export default async function VideoDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const item = VIDEO_ITEMS.find((v) => v.slug === slug);
+  const video = await getPageVideo(slug);
 
-  if (!item) return notFound();
+  if (!video) return notFound();
 
   return (
     <>
       <Nav />
-      <SingleVideoPage item={item} />
+      <SingleVideoPage item={toVideoItem(video)} />
       <Footer />
     </>
   );

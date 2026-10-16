@@ -17,14 +17,17 @@ import PixelWarpGallery from "@/components/PixelWarpGallery";
 import ImageDisplay from "@/components/ImageDisplay";
 import AuroraRingGallery from "@/components/AuroraRingGallery";
 import type { ShowcaseRingItem } from "@/data/showcase";
+import type { ShowcaseVideoCard } from "@/lib/showcase";
 import type { Certificate } from "@/lib/certificates";
 
 export default function HomePage({
   items,
   certificates,
+  showcaseVideos,
 }: {
   items: ShowcaseRingItem[];
   certificates: Certificate[];
+  showcaseVideos: ShowcaseVideoCard[];
 }) {
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +55,14 @@ export default function HomePage({
           ]}
           autoplay
         /> */}
-        <PixelWarpGallery />
+        {showcaseVideos.length > 0 && (
+          <PixelWarpGallery
+            items={showcaseVideos.map((card) => ({
+              label: card.label || undefined,
+              video: card.videoUrl,
+            }))}
+          />
+        )}
         <Certifications certificates={certificates} />
         <Experience />
         <Testimonials />

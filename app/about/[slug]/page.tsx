@@ -4,7 +4,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ProfileView from "@/components/profile/ProfileView";
 import { getProfile } from "@/lib/profile";
-import { ABOUT_ITEMS } from "@/data/about";
+import { getAboutItem } from "@/lib/about";
 
 export default async function AboutDetailPage({
   params,
@@ -12,7 +12,7 @@ export default async function AboutDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const item = ABOUT_ITEMS.find((a) => a.slug === slug);
+  const item = await getAboutItem(slug);
 
   if (!item) return notFound();
 

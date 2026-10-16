@@ -9,6 +9,7 @@ export interface ShowcaseImage {
   category: string;
   location: string;
   imageUrl: string;
+  videoUrl: string;
   sortOrder: number;
 }
 
@@ -18,10 +19,12 @@ interface ShowcaseImageRow {
   category: string;
   location: string;
   image_url: string;
+  video_url: string | null;
   sort_order: number;
 }
 
-const IMAGE_SELECT = "id, title, category, location, image_url, sort_order";
+const IMAGE_SELECT =
+  "id, title, category, location, image_url, video_url, sort_order";
 
 function toImage(row: ShowcaseImageRow): ShowcaseImage {
   return {
@@ -30,6 +33,7 @@ function toImage(row: ShowcaseImageRow): ShowcaseImage {
     category: row.category,
     location: row.location,
     imageUrl: row.image_url,
+    videoUrl: row.video_url ?? "",
     sortOrder: row.sort_order,
   };
 }
@@ -45,6 +49,9 @@ function isMissingTable(message: string) {
 export function friendlyShowcaseError(message: string): string {
   if (isMissingTable(message)) {
     return `Showcase table not found. Run the SQL in ${SHOWCASE_MIGRATION} in your Supabase project first.`;
+  }
+  if (message.includes("video_url")) {
+    return `video_url column not found. Run the SQL in lib/supabase/migrations/009_showcase_video.sql in your Supabase project first.`;
   }
   return message;
 }
@@ -97,6 +104,7 @@ export async function getShowcaseItems(): Promise<ShowcaseRingItem[]> {
     title: image.title,
     category: image.category,
     location: image.location,
+    videoUrl: image.videoUrl || undefined,
   }));
 }
 
@@ -170,6 +178,144 @@ export async function deleteShowcaseImage(id: string): Promise<boolean> {
 
   if (error) {
     console.error("deleteShowcaseImage failed:", error.message);
+    return false;
+  }
+
+  return true;
+}
+
+// Showcase card-er looping background video — Video Management theke hoy
+export async function updateShowcaseVideo(
+  id: string,
+  videoUrl: string,
+): Promise<{ ok: boolean; error: string | null }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("showcase_images")
+    .update({ video_url: videoUrl })
+    .eq("id", id);
+
+  if (error) {
+    console.error("updateShowcaseVideo failed:", error.message);
+    return { ok: false, error: friendlyShowcaseError(error.message) };
+  }
+
+  return { ok: true, error: null };
+}
+
+/* ---------------------------------------------------------
+   Home page "Showcase" section — looping video cards
+   (PixelWarpGallery), managed in Video Management
+--------------------------------------------------------- */
+export const SHOWCASE_VIDEOS_MIGRATION =
+  "lib/supabase/migrations/011_showcase_videos.sql";
+
+export interface ShowcaseVideoCard {
+  id: string;
+  label: string;
+  videoUrl: string;
+  sortOrder: number;
+}
+
+interface ShowcaseVideoCardRow {
+  id: string;
+  label: string;
+  video_url: string;
+  sort_order: number;
+}
+
+const SHOWCASE_VIDEO_CARD_SELECT = "id, label, video_url, sort_order";
+
+function toShowcaseVideoCard(row: ShowcaseVideoCardRow): ShowcaseVideoCard {
+  return {
+    id: row.id,
+    label: row.label,
+    videoUrl: row.video_url,
+    sortOrder: row.sort_order,
+  };
+}
+
+export function friendlyShowcaseVideosError(message: string): string {
+  if (isMissingTable(message)) {
+    return `Showcase videos table not found. Run the SQL in ${SHOWCASE_VIDEOS_MIGRATION} in your Supabase project first.`;
+  }
+  return message;
+}
+
+export async function getShowcaseVideoCards(): Promise<ShowcaseVideoCard[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("showcase_videos")
+    .select(SHOWCASE_VIDEO_CARD_SELECT)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    if (!isMissingTable(error.message)) {
+      console.error("getShowcaseVideoCards failed:", error.message);
+    }
+    // Table na thakle site same dekhay — default card
+    return [
+      { id: "default", label: "Motion 01", videoUrl: "/video/1.mp4", sortOrder: 1 },
+    ];
+  }
+
+  return ((data ?? []) as unknown as ShowcaseVideoCardRow[]).map(
+    toShowcaseVideoCard,
+  );
+}
+
+export async function createShowcaseVideoCard(values: {
+  label: string;
+  videoUrl: string;
+}): Promise<{ id: string | null; error: string | null }> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("showcase_videos")
+    .insert({ label: values.label, video_url: values.videoUrl })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("createShowcaseVideoCard failed:", error.message);
+    return { id: null, error: friendlyShowcaseVideosError(error.message) };
+  }
+
+  return { id: data.id, error: null };
+}
+
+export async function updateShowcaseVideoCard(
+  id: string,
+  values: { label: string; videoUrl: string },
+): Promise<{ ok: boolean; error: string | null }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("showcase_videos")
+    .update({ label: values.label, video_url: values.videoUrl })
+    .eq("id", id);
+
+  if (error) {
+    console.error("updateShowcaseVideoCard failed:", error.message);
+    return { ok: false, error: friendlyShowcaseVideosError(error.message) };
+  }
+
+  return { ok: true, error: null };
+}
+
+export async function deleteShowcaseVideoCard(id: string): Promise<boolean> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("showcase_videos")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("deleteShowcaseVideoCard failed:", error.message);
     return false;
   }
 
