@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useRef } from "react";
+import { useActionState, useState, useRef, useEffect, type FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Check, ImagePlus, Loader2 } from "lucide-react";
@@ -33,6 +33,119 @@ export default function ShowcaseImageForm({
   const [previewUrl, setPreviewUrl] = useState(image?.imageUrl ?? "");
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [thumbFileName, setThumbFileName] = useState("");
+  const [thumbPreviewUrl, setThumbPreviewUrl] = useState(
+    image?.thumbnailUrl ?? "",
+  );
+  const thumbFileRef = useRef<HTMLInputElement>(null);
+
+  const [offsetX, setOffsetX] = useState(image?.cardOffsetX ?? 50);
+  const [offsetY, setOffsetY] = useState(image?.cardOffsetY ?? 50);
+  const [scale, setScale] = useState(image?.cardScale ?? 1);
+  const cropRef = useRef<HTMLDivElement>(null);
+  const previewImgRef = useRef<HTMLImageElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const submittingRef = useRef(false);
+  const dragging = useRef(false);
+  const lastPos = useRef({ x: 0, y: 0 });
+
+  const CROP_W = 120;
+  const CROP_H = 173;
+
+  const generateCropFile = async (): Promise<File | null> => {
+    const imgEl = previewImgRef.current;
+    if (!imgEl || !previewUrl) return null;
+    const displayW = imgEl.clientWidth;
+    const displayH = imgEl.clientHeight;
+    if (!displayW || !displayH) return null;
+
+    const cropW = CROP_W / scale;
+    const cropH = CROP_H / scale;
+    let left = (offsetX / 100) * displayW - cropW / 2;
+    let top = (offsetY / 100) * displayH - cropH / 2;
+    left = Math.max(0, Math.min(displayW - cropW, left));
+    top = Math.max(0, Math.min(displayH - cropH, top));
+
+    const source = new window.Image();
+    source.crossOrigin = "anonymous";
+    source.src = previewUrl;
+    try {
+      await source.decode();
+      const scaleX = source.naturalWidth / displayW;
+      const scaleY = source.naturalHeight / displayH;
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 368;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+      ctx.drawImage(
+        source,
+        left * scaleX,
+        top * scaleY,
+        cropW * scaleX,
+        cropH * scaleY,
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      );
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/png"),
+      );
+      if (!blob) return null;
+      return new File([blob], "card-crop.png", { type: "image/png" });
+    } catch {
+      return null;
+    }
+  };
+
+  const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    if (submittingRef.current) return;
+    if (!previewUrl) return;
+    e.preventDefault();
+    const file = await generateCropFile();
+    if (file && thumbFileRef.current) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      thumbFileRef.current.files = dt.files;
+    }
+    submittingRef.current = true;
+    formRef.current?.requestSubmit();
+  };
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!dragging.current) return;
+      const dx = e.clientX - lastPos.current.x;
+      const dy = e.clientY - lastPos.current.y;
+      lastPos.current = { x: e.clientX, y: e.clientY };
+      const frame = cropRef.current;
+      if (!frame) return;
+      const rect = frame.getBoundingClientRect();
+      const cropW = CROP_W / scale;
+      const cropH = CROP_H / scale;
+      const minX = (cropW / 2 / rect.width) * 100;
+      const maxX = 100 - minX;
+      const minY = (cropH / 2 / rect.height) * 100;
+      const maxY = 100 - minY;
+      setOffsetX((prev) =>
+        Math.max(minX, Math.min(maxX, prev + (dx / rect.width) * 100)),
+      );
+      setOffsetY((prev) =>
+        Math.max(minY, Math.min(maxY, prev + (dy / rect.height) * 100)),
+      );
+    };
+    const onUp = () => {
+      dragging.current = false;
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [scale]);
+
   return (
     <div className="mx-auto max-w-2xl">
       <Link
@@ -58,7 +171,12 @@ export default function ShowcaseImageForm({
         </p>
       )}
 
-      <form action={formAction} className="mt-8 space-y-6">
+      <form
+        ref={formRef}
+        action={formAction}
+        onSubmit={handleFormSubmit}
+        className="mt-8 space-y-6"
+      >
         {isEdit && <input type="hidden" name="imageId" value={image?.id} />}
 
         <div>
@@ -180,6 +298,171 @@ export default function ShowcaseImageForm({
             className={`${fieldClass} mt-2`}
             onChange={(e) => setPreviewUrl(e.target.value)}
           />
+        </div>
+
+        <div>
+          <span className={labelClass}>Thumbnail (ring card crop)</span>
+          <p className="mb-3 text-xs text-cream/30">
+            Optional. Used for the fixed-size card in the Showcase Gallery ring.
+            Upload a cropped version of the image to control which area is shown.
+          </p>
+
+          {thumbPreviewUrl && (
+            <div className="mb-4 flex items-center gap-4">
+              <div
+                className="relative shrink-0 overflow-hidden rounded-lg border border-cream/10"
+                style={{ width: 64, height: 92 }}
+              >
+                <Image
+                  src={thumbPreviewUrl}
+                  alt="Thumbnail preview"
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              </div>
+              <span className="text-xs text-cream/40">
+                {isEdit ? "Current thumbnail" : "Selected thumbnail"} — fixed
+                card preview
+              </span>
+            </div>
+          )}
+
+          <label
+            htmlFor="thumbnail"
+            className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-cream/15 px-4 py-3 text-sm text-cream/50 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
+          >
+            {thumbFileName ? (
+              <>
+                <Check size={16} className="text-[#8DB355]" />
+                <span className="truncate text-cream/70">{thumbFileName}</span>
+              </>
+            ) : (
+              <>
+                <ImagePlus size={16} />
+                Choose thumbnail file
+              </>
+            )}
+          </label>
+          <input
+            ref={thumbFileRef}
+            id="thumbnail"
+            name="thumbnail"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              setThumbFileName(file?.name || "");
+              if (file) {
+                setThumbPreviewUrl(URL.createObjectURL(file));
+              }
+            }}
+          />
+
+          <p className="mt-3 text-xs text-cream/30">
+            Or paste a URL below (used when no file is chosen):
+          </p>
+          <input
+            name="thumbnailUrl"
+            defaultValue={image?.thumbnailUrl ?? ""}
+            placeholder="https://..."
+            className={`${fieldClass} mt-2`}
+            onChange={(e) => setThumbPreviewUrl(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <span className={labelClass}>Card crop (drag to set view angle)</span>
+          <p className="mb-3 text-xs text-cream/30">
+            Drag the image inside the frame to choose which area shows on the
+            fixed-size ring card. Scroll to zoom.
+          </p>
+
+          <input type="hidden" name="cardOffsetX" value={offsetX} />
+          <input type="hidden" name="cardOffsetY" value={offsetY} />
+          <input type="hidden" name="cardScale" value={scale} />
+
+          <div
+            ref={cropRef}
+            className="relative mx-auto overflow-hidden rounded-lg border border-cream/10 bg-black/40"
+            style={{ width: 320 }}
+            onWheel={(e) => {
+              e.preventDefault();
+              setScale((s) => {
+                const next = s - e.deltaY * 0.001;
+                return Math.min(3, Math.max(1, next));
+              });
+            }}
+          >
+            {previewUrl && (
+              <img
+                ref={previewImgRef}
+                src={previewUrl}
+                alt="Crop preview"
+                className="block h-auto w-full"
+                draggable={false}
+              />
+            )}
+            {previewUrl && (
+              <div
+                className="absolute cursor-grab border-2 border-[#8DB355] bg-[#8DB355]/10 active:cursor-grabbing"
+                style={{
+                  left: `${offsetX}%`,
+                  top: `${offsetY}%`,
+                  width: CROP_W / scale,
+                  height: CROP_H / scale,
+                  transform: "translate(-50%, -50%)",
+                  boxShadow: "0 0 0 9999px rgba(0,0,0,0.45)",
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  dragging.current = true;
+                  lastPos.current = { x: e.clientX, y: e.clientY };
+                }}
+              >
+                <span className="absolute -top-6 left-0 whitespace-nowrap font-mono text-[10px] uppercase tracking-wider text-[#8DB355]">
+                  Card view
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-3 flex items-center justify-center gap-2 text-xs text-cream/40">
+            <button
+              type="button"
+              onClick={() =>
+                setScale((s) => Math.max(1, +(s - 0.1).toFixed(2)))
+              }
+              className="rounded-full border border-cream/10 px-3 py-1 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
+            >
+              Zoom out
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setScale((s) => Math.min(3, +(s + 0.1).toFixed(2)))
+              }
+              className="rounded-full border border-cream/10 px-3 py-1 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
+            >
+              Zoom in
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setOffsetX(50);
+                setOffsetY(50);
+                setScale(1);
+              }}
+              className="rounded-full border border-cream/10 px-3 py-1 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
+            >
+              Reset
+            </button>
+            <span>
+              X: {offsetX.toFixed(0)}% · Y: {offsetY.toFixed(0)}% · Zoom:{" "}
+              {scale.toFixed(2)}x
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 border-t border-cream/10 pt-6">

@@ -50,18 +50,39 @@ export async function addShowcaseImage(
   const imageFile = formData.get("image");
   let imageUrl = String(formData.get("imageUrl") || "").trim();
 
+  const thumbnailFile = formData.get("thumbnail");
+  let thumbnailUrl = String(formData.get("thumbnailUrl") || "").trim();
+
   try {
     if (imageFile instanceof File && imageFile.size > 0) {
       imageUrl = await uploadProjectImage(imageFile, "showcase");
+    }
+
+    if (thumbnailFile instanceof File && thumbnailFile.size > 0) {
+      thumbnailUrl = await uploadProjectImage(thumbnailFile, "showcase");
     }
 
     if (!imageUrl) {
       return { error: "Please upload an image or provide an image URL." };
     }
 
+    const cardOffsetX = Number.parseFloat(
+      String(formData.get("cardOffsetX") || "50"),
+    );
+    const cardOffsetY = Number.parseFloat(
+      String(formData.get("cardOffsetY") || "50"),
+    );
+    const cardScale = Number.parseFloat(
+      String(formData.get("cardScale") || "1"),
+    );
+
     const { id, error } = await createShowcaseImage({
       ...values,
       imageUrl,
+      thumbnailUrl,
+      cardOffsetX: Number.isNaN(cardOffsetX) ? 50 : cardOffsetX,
+      cardOffsetY: Number.isNaN(cardOffsetY) ? 50 : cardOffsetY,
+      cardScale: Number.isNaN(cardScale) ? 1 : cardScale,
     });
 
     if (!id) return { error: error ?? "Could not save the image." };
@@ -99,18 +120,39 @@ export async function editShowcaseImage(
   const imageFile = formData.get("image");
   let imageUrl = String(formData.get("imageUrl") || "").trim();
 
+  const thumbnailFile = formData.get("thumbnail");
+  let thumbnailUrl = String(formData.get("thumbnailUrl") || "").trim();
+
   try {
     if (imageFile instanceof File && imageFile.size > 0) {
       imageUrl = await uploadProjectImage(imageFile, "showcase");
+    }
+
+    if (thumbnailFile instanceof File && thumbnailFile.size > 0) {
+      thumbnailUrl = await uploadProjectImage(thumbnailFile, "showcase");
     }
 
     if (!imageUrl) {
       return { error: "Please upload an image or provide an image URL." };
     }
 
+    const cardOffsetX = Number.parseFloat(
+      String(formData.get("cardOffsetX") || "50"),
+    );
+    const cardOffsetY = Number.parseFloat(
+      String(formData.get("cardOffsetY") || "50"),
+    );
+    const cardScale = Number.parseFloat(
+      String(formData.get("cardScale") || "1"),
+    );
+
     const { ok, error } = await updateShowcaseImage(imageId, {
       ...values,
       imageUrl,
+      thumbnailUrl: thumbnailUrl || undefined,
+      cardOffsetX: Number.isNaN(cardOffsetX) ? 50 : cardOffsetX,
+      cardOffsetY: Number.isNaN(cardOffsetY) ? 50 : cardOffsetY,
+      cardScale: Number.isNaN(cardScale) ? 1 : cardScale,
     });
 
     if (!ok) return { error: error ?? "Could not update the image." };

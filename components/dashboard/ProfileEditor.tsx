@@ -962,6 +962,135 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
           </div>
         </Panel>
 
+        {/* ── Software & AI Tools ── */}
+        <Panel
+          title="Software & AI Tools"
+          hint="Icon tiles shown above Skills on /profile"
+        >
+          <div className="space-y-3">
+            {draft.softwareTools.map((tool, i) => (
+              <div
+                key={i}
+                className="space-y-2 rounded-lg border border-cream/10 bg-bg/40 p-3"
+              >
+                <div className="flex items-center gap-2">
+                  <input
+                    value={tool.name}
+                    onChange={(e) =>
+                      setDraft((p) => ({
+                        ...p,
+                        softwareTools: listMap(p.softwareTools, i, {
+                          name: e.target.value,
+                        }),
+                      }))
+                    }
+                    placeholder="Tool name"
+                    className={`${fieldClass} min-w-0 flex-1`}
+                  />
+                  <div className="w-44 shrink-0">
+                    <IconSelect
+                      value={tool.icon}
+                      onChange={(icon) =>
+                        setDraft((p) => ({
+                          ...p,
+                          softwareTools: listMap(p.softwareTools, i, { icon }),
+                        }))
+                      }
+                    />
+                  </div>
+                  <RemoveBtn
+                    onClick={() =>
+                      set(
+                        "softwareTools",
+                        draft.softwareTools.filter((_, idx) => idx !== i),
+                      )
+                    }
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    name={
+                      tool.iconImage?.startsWith("upload:")
+                        ? `software-icon-${tool.iconImage.slice(7)}`
+                        : undefined
+                    }
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const key = `${Date.now()}-${Math.random()
+                        .toString(36)
+                        .slice(2, 8)}`;
+                      skillLogoRef.current.set(key, {
+                        url: URL.createObjectURL(file),
+                        name: file.name,
+                      });
+                      setDraft((p) => ({
+                        ...p,
+                        softwareTools: listMap(p.softwareTools, i, {
+                          iconImage: `upload:${key}`,
+                        }),
+                      }));
+                    }}
+                    className={`${fieldClass} file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#8DB355]`}
+                  />
+                  {tool.iconImage && (
+                    <>
+                      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-md border border-cream/10">
+                        <Image
+                          src={
+                            tool.iconImage.startsWith("upload:")
+                              ? (skillLogoRef.current.get(
+                                  tool.iconImage.slice(7),
+                                )?.url ?? "")
+                              : tool.iconImage
+                          }
+                          alt={`${tool.name} logo`}
+                          fill
+                          sizes="32px"
+                          className="object-contain"
+                        />
+                      </div>
+                      <span className="min-w-0 truncate text-xs text-cream/50">
+                        {tool.iconImage.startsWith("upload:")
+                          ? skillLogoRef.current.get(tool.iconImage.slice(7))
+                              ?.name
+                          : tool.iconImage.split("/").pop()}
+                      </span>
+                      <button
+                        type="button"
+                        title="Remove logo"
+                        onClick={() =>
+                          setDraft((p) => ({
+                            ...p,
+                            softwareTools: listMap(p.softwareTools, i, {
+                              iconImage: undefined,
+                            }),
+                          }))
+                        }
+                        className="rounded-full border border-cream/10 p-1 text-cream/40 transition-colors hover:border-red-500/40 hover:text-red-400"
+                      >
+                        <X size={11} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+            <AddBtn
+              onClick={() =>
+                set("softwareTools", [
+                  ...draft.softwareTools,
+                  { name: "New tool", icon: "FaStar" },
+                ])
+              }
+            >
+              Add tool
+            </AddBtn>
+          </div>
+        </Panel>
+
         {/* ── Soft skills ── */}
         <Panel title="Strengths & Passions" hint="The tag chips in the sidebar">
           <ChipsEditor

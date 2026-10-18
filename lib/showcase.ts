@@ -9,6 +9,10 @@ export interface ShowcaseImage {
   category: string;
   location: string;
   imageUrl: string;
+  thumbnailUrl: string;
+  cardOffsetX: number;
+  cardOffsetY: number;
+  cardScale: number;
   videoUrl: string;
   sortOrder: number;
 }
@@ -19,12 +23,16 @@ interface ShowcaseImageRow {
   category: string;
   location: string;
   image_url: string;
+  thumbnail_url: string | null;
+  card_offset_x: number | null;
+  card_offset_y: number | null;
+  card_scale: number | null;
   video_url: string | null;
   sort_order: number;
 }
 
 const IMAGE_SELECT =
-  "id, title, category, location, image_url, video_url, sort_order";
+  "id, title, category, location, image_url, thumbnail_url, card_offset_x, card_offset_y, card_scale, video_url, sort_order";
 
 function toImage(row: ShowcaseImageRow): ShowcaseImage {
   return {
@@ -33,6 +41,10 @@ function toImage(row: ShowcaseImageRow): ShowcaseImage {
     category: row.category,
     location: row.location,
     imageUrl: row.image_url,
+    thumbnailUrl: row.thumbnail_url ?? "",
+    cardOffsetX: row.card_offset_x ?? 50,
+    cardOffsetY: row.card_offset_y ?? 50,
+    cardScale: row.card_scale ?? 1,
     videoUrl: row.video_url ?? "",
     sortOrder: row.sort_order,
   };
@@ -52,6 +64,12 @@ export function friendlyShowcaseError(message: string): string {
   }
   if (message.includes("video_url")) {
     return `video_url column not found. Run the SQL in lib/supabase/migrations/009_showcase_video.sql in your Supabase project first.`;
+  }
+  if (message.includes("thumbnail_url")) {
+    return `thumbnail_url column not found. Run the SQL in lib/supabase/migrations/012_showcase_thumbnail.sql in your Supabase project first.`;
+  }
+  if (message.includes("card_offset_x") || message.includes("card_scale")) {
+    return `card crop columns not found. Run the SQL in lib/supabase/migrations/013_showcase_crop.sql in your Supabase project first.`;
   }
   return message;
 }
@@ -101,6 +119,10 @@ export async function getShowcaseItems(): Promise<ShowcaseRingItem[]> {
 
   return images.map((image) => ({
     src: image.imageUrl,
+    thumbnail: image.thumbnailUrl || undefined,
+    cardOffsetX: image.cardOffsetX,
+    cardOffsetY: image.cardOffsetY,
+    cardScale: image.cardScale,
     title: image.title,
     category: image.category,
     location: image.location,
@@ -113,6 +135,10 @@ export async function createShowcaseImage(values: {
   category: string;
   location: string;
   imageUrl: string;
+  thumbnailUrl?: string;
+  cardOffsetX?: number;
+  cardOffsetY?: number;
+  cardScale?: number;
   sortOrder: number;
 }): Promise<{ id: string | null; error: string | null }> {
   const supabase = await createClient();
@@ -124,6 +150,10 @@ export async function createShowcaseImage(values: {
       category: values.category,
       location: values.location,
       image_url: values.imageUrl,
+      thumbnail_url: values.thumbnailUrl ?? "",
+      card_offset_x: values.cardOffsetX ?? 50,
+      card_offset_y: values.cardOffsetY ?? 50,
+      card_scale: values.cardScale ?? 1,
       sort_order: values.sortOrder,
     })
     .select("id")
@@ -144,20 +174,38 @@ export async function updateShowcaseImage(
     category: string;
     location: string;
     imageUrl: string;
+    thumbnailUrl?: string;
+    cardOffsetX?: number;
+    cardOffsetY?: number;
+    cardScale?: number;
     sortOrder: number;
   },
 ): Promise<{ ok: boolean; error: string | null }> {
   const supabase = await createClient();
 
+  const update: Record<string, unknown> = {
+    title: values.title,
+    category: values.category,
+    location: values.location,
+    image_url: values.imageUrl,
+    sort_order: values.sortOrder,
+  };
+  if (values.thumbnailUrl !== undefined) {
+    update.thumbnail_url = values.thumbnailUrl;
+  }
+  if (values.cardOffsetX !== undefined) {
+    update.card_offset_x = values.cardOffsetX;
+  }
+  if (values.cardOffsetY !== undefined) {
+    update.card_offset_y = values.cardOffsetY;
+  }
+  if (values.cardScale !== undefined) {
+    update.card_scale = values.cardScale;
+  }
+
   const { error } = await supabase
     .from("showcase_images")
-    .update({
-      title: values.title,
-      category: values.category,
-      location: values.location,
-      image_url: values.imageUrl,
-      sort_order: values.sortOrder,
-    })
+    .update(update)
     .eq("id", id);
 
   if (error) {

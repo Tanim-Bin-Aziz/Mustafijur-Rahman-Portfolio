@@ -29,6 +29,9 @@ export async function updateProfile(
   try {
     const parsed = JSON.parse(raw) as Partial<ProfileData>;
     draft = { ...structuredClone(DEFAULT_PROFILE), ...parsed };
+    if (!Array.isArray(draft.softwareTools)) {
+      draft.softwareTools = structuredClone(DEFAULT_PROFILE.softwareTools);
+    }
   } catch {
     return { error: "Invalid profile data.", saved: false };
   }
@@ -45,6 +48,7 @@ export async function updateProfile(
 
     const skillLogoUrls = new Map<string, string>();
     const skillTagLogoUrls = new Map<string, string>();
+    const softwareLogoUrls = new Map<string, string>();
     for (const [fieldKey, value] of formData.entries()) {
       if (!(value instanceof File) || value.size <= 0) continue;
       if (fieldKey.startsWith("skill-tag-icon-")) {
@@ -57,10 +61,15 @@ export async function updateProfile(
           fieldKey.slice("skill-icon-".length),
           await uploadProjectImage(value, "profile-skills"),
         );
+      } else if (fieldKey.startsWith("software-icon-")) {
+        softwareLogoUrls.set(
+          fieldKey.slice("software-icon-".length),
+          await uploadProjectImage(value, "profile-skills"),
+        );
       }
     }
 
-    if (skillLogoUrls.size > 0 || skillTagLogoUrls.size > 0) {
+      if (skillLogoUrls.size > 0 || skillTagLogoUrls.size > 0) {
       for (const category of draft.skillCategories) {
         if (
           typeof category.iconImage === "string" &&
@@ -79,6 +88,19 @@ export async function updateProfile(
             if (url) item.iconImage = url;
             else delete item.iconImage;
           }
+        }
+      }
+    }
+
+    if (softwareLogoUrls.size > 0) {
+      for (const tool of draft.softwareTools) {
+        if (
+          typeof tool.iconImage === "string" &&
+          tool.iconImage.startsWith("upload:")
+        ) {
+          const url = softwareLogoUrls.get(tool.iconImage.slice(7));
+          if (url) tool.iconImage = url;
+          else delete tool.iconImage;
         }
       }
     }

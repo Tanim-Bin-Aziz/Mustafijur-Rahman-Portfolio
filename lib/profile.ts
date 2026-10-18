@@ -38,6 +38,9 @@ function mergeProfile(data: Partial<ProfileData> | null): ProfileData {
       ...DEFAULT_PROFILE.softSkills,
       ...(data.softSkills ?? {}),
     },
+    softwareTools: Array.isArray(data.softwareTools)
+      ? data.softwareTools
+      : DEFAULT_PROFILE.softwareTools,
     sectionOrder: [
       ...savedOrder,
       ...DEFAULT_PROFILE.sectionOrder.filter((key) => !savedOrder.includes(key)),

@@ -526,6 +526,48 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
       case "skills":
         return (
           <SectionCard theme={theme}>
+            {profile.softwareTools.length > 0 && (
+              <>
+                <SectionLabel theme={theme}>Software & AI Tools</SectionLabel>
+                <div className="grid grid-cols-4 gap-3 mb-4">
+                  {profile.softwareTools.map((tool, i) => {
+                    const Icon = iconFor(tool.icon);
+                    return (
+                      <div
+                        key={i}
+                        className="flex flex-col items-center gap-1.5 text-center"
+                      >
+                        <div
+                          className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl"
+                          style={{ backgroundColor: theme.secondary }}
+                        >
+                          {tool.iconImage ? (
+                            <Image
+                              src={tool.iconImage}
+                              alt={tool.name}
+                              fill
+                              sizes="48px"
+                              className="object-contain p-1.5"
+                            />
+                          ) : (
+                            <Icon
+                              className="text-lg"
+                              style={{ color: theme.primary }}
+                            />
+                          )}
+                        </div>
+                        <span
+                          className="text-[11px] leading-tight"
+                          style={{ color: theme.cardForeground }}
+                        >
+                          {tool.name}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
             <SectionLabel theme={theme}>Skills</SectionLabel>
             {profile.skillCategories.map((cat) => (
               <SkillGroup

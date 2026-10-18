@@ -145,6 +145,10 @@ export const SHOWCASE: ShowcaseCategory[] = [
 
 export interface ShowcaseRingItem {
   src: string;
+  thumbnail?: string; // image used for the fixed-size ring card (chosen crop)
+  cardOffsetX?: number;
+  cardOffsetY?: number;
+  cardScale?: number;
   title: string;
   category: string;
   location: string;

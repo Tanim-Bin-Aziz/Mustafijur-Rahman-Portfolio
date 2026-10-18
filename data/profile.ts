@@ -107,6 +107,12 @@ export interface ProfileSkillItem {
   iconImage?: string;
 }
 
+export interface ProfileToolItem {
+  name: string;
+  icon: string;
+  iconImage?: string;
+}
+
 export interface ProfileSkillCategory {
   label: string;
   icon: string;
@@ -179,6 +185,7 @@ export interface ProfileData {
   status: string;
   about: string[];
   skillCategories: ProfileSkillCategory[];
+  softwareTools: ProfileToolItem[];
   softSkills: { strengths: string[]; passions: string[] };
   experiences: ProfileExperience[];
   awards: ProfileAward[];
@@ -263,6 +270,16 @@ export const DEFAULT_PROFILE: ProfileData = {
         { name: "Artificial Intelligence", icon: "FaBrain" },
       ],
     },
+  ],
+  softwareTools: [
+    { name: "Illustrator", icon: "FaPenNib" },
+    { name: "Photoshop", icon: "FaImage" },
+    { name: "CLO 3D", icon: "FaCube" },
+    { name: "Microsoft Office", icon: "FaMicrosoft" },
+    { name: "Canva AI", icon: "FaStar" },
+    { name: "ChatGPT", icon: "FaBrain" },
+    { name: "Gemini", icon: "FaStar" },
+    { name: "Firefly", icon: "FaStar" },
   ],
   softSkills: {
     strengths: [

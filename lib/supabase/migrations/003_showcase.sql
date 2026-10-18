@@ -13,6 +13,7 @@ create table if not exists public.showcase_images (
   category text not null default '',
   location text not null default '',
   image_url text not null default '',
+  thumbnail_url text not null default '',
   sort_order integer not null default 0,
   created_at timestamptz not null default now()
 );

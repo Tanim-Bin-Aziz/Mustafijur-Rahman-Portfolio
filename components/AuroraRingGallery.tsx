@@ -14,9 +14,13 @@ import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 
 export interface RingItem {
   src: string;
+  thumbnail?: string; // image used for the fixed-size ring card (chosen crop)
+  cardOffsetX?: number;
+  cardOffsetY?: number;
+  cardScale?: number;
   title: string;
-  category: string; // jemon: "VILLAS", "LUXURY APARTMENTS"
-  location: string; // jemon: "DUBAI", "MUMBAI"
+  category: string;
+  location: string;
   videoUrl?: string; // optional looping background video
 }
 
@@ -68,7 +72,7 @@ export default function AuroraRingGallery({
   const [centerIndex, setCenterIndex] = useState(0); // default-e center-e thaka card — auto-follow
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   // Center popup — image er natural aspect ratio onujayi size adapt kore (crop na)
-  const [popupDims, setPopupDims] = useState({ width: 260, height: 190 });
+  const [popupDims] = useState({ width: 240, height: 348 });
   // Design size shobshomoy desktop-er moto fixed — mobile e shudhu pura stage
   // ta uniform scale hoy (ring, card, popup, text shob ekshathe)
   const dims = useMemo(
@@ -255,10 +259,7 @@ export default function AuroraRingGallery({
   // hover thakle hover-kora item, nahole jeta center cross korche shetai dekhabe
   const displayIndex = hoveredIndex !== null ? hoveredIndex : centerIndex;
 
-  // Image change korle popup size abar load-er por set hobe
-  useEffect(() => {
-    setPopupDims({ width: 260, height: 190 });
-  }, [displayIndex]);
+  // Popup size fixed — no per-image resize
 
   if (!n) return null;
   const displayed = items[displayIndex];
@@ -318,21 +319,39 @@ export default function AuroraRingGallery({
               {item.videoUrl ? (
                 <video
                   src={item.videoUrl}
-                  poster={item.src}
+                  poster={item.thumbnail ?? item.src}
                   autoPlay
                   loop
                   muted
                   playsInline
                   className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+                  style={{
+                    objectPosition: `${item.cardOffsetX ?? 50}% ${
+                      item.cardOffsetY ?? 50
+                    }%`,
+                    transform: item.thumbnail
+                      ? "none"
+                      : `scale(${item.cardScale ?? 1})`,
+                    transformOrigin: "center",
+                  }}
                 />
               ) : (
                 <Image
-                  src={item.src}
+                  src={item.thumbnail ?? item.src}
                   alt={item.title}
                   fill
                   sizes="150px"
                   className="object-cover pointer-events-none"
                   loading="lazy"
+                  style={{
+                    objectPosition: `${item.cardOffsetX ?? 50}% ${
+                      item.cardOffsetY ?? 50
+                    }%`,
+                    transform: item.thumbnail
+                      ? "none"
+                      : `scale(${item.cardScale ?? 1})`,
+                    transformOrigin: "center",
+                  }}
                 />
               )}
             </button>
@@ -353,34 +372,36 @@ export default function AuroraRingGallery({
                   <video
                     key={displayIndex}
                     src={displayed.videoUrl}
+                    poster={displayed.thumbnail ?? displayed.src}
                     autoPlay
                     loop
                     muted
                     playsInline
                     className="absolute inset-0 h-full w-full object-cover"
-                    onLoadedMetadata={(e) => {
-                      const v = e.currentTarget;
-                      if (v.videoWidth && v.videoHeight) {
-                        setPopupDims(fitInto(v.videoWidth, v.videoHeight, 360, 280));
-                      }
+                    style={{
+                      transform: `translate(${displayed.cardOffsetX ?? 0}%, ${
+                        displayed.cardOffsetY ?? 0
+                      }%) scale(${displayed.cardScale ?? 1})`,
+                      transformOrigin: "center",
                     }}
                   />
                 ) : (
                   <Image
                     key={displayIndex}
-                    src={displayed.src}
+                    src={displayed.thumbnail ?? displayed.src}
                     alt={displayed.title}
                     fill
                     sizes="360px"
                     className="object-cover"
                     priority={!hasMountedRef.current}
-                    onLoad={(e) => {
-                      const img = e.currentTarget;
-                      if (img.naturalWidth && img.naturalHeight) {
-                        setPopupDims(
-                          fitInto(img.naturalWidth, img.naturalHeight, 360, 280),
-                        );
-                      }
+                    style={{
+                      objectPosition: `${displayed.cardOffsetX ?? 50}% ${
+                        displayed.cardOffsetY ?? 50
+                      }%`,
+                      transform: displayed.thumbnail
+                        ? "none"
+                        : `scale(${displayed.cardScale ?? 1})`,
+                      transformOrigin: "center",
                     }}
                   />
                 )}
