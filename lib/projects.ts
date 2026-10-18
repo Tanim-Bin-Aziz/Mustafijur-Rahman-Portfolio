@@ -20,6 +20,7 @@ export interface Project {
   description: string;
   pdfSrc: string;
   previewImages: string[];
+  sortOrder: number;
 }
 
 export interface ProjectImageRecord {
@@ -42,6 +43,7 @@ interface ProjectRow {
   location: string;
   description: string;
   pdf_url: string;
+  sort_order?: number | null;
   categories: { slug: string } | { slug: string }[] | null;
   project_images:
     | { id: string; image_url: string; sort_order: number }[]
@@ -49,6 +51,21 @@ interface ProjectRow {
 }
 
 const PROJECT_SELECT = `
+  id,
+  slug,
+  title,
+  cover,
+  project_type,
+  date,
+  location,
+  description,
+  pdf_url,
+  sort_order,
+  categories ( slug ),
+  project_images ( id, image_url, sort_order )
+`;
+
+const PROJECT_SELECT_NO_SORT = `
   id,
   slug,
   title,
@@ -85,6 +102,7 @@ function toProject(row: ProjectRow): Project {
     description: row.description,
     pdfSrc: row.pdf_url,
     previewImages: images.map((image) => image.image_url),
+    sortOrder: row.sort_order ?? 0,
   };
 }
 
@@ -136,6 +154,15 @@ export async function getCategory(slug: string): Promise<Category | null> {
   return data;
 }
 
+function isMissingSortColumn(message: string) {
+  return (
+    message.toLowerCase().includes("sort_order") &&
+    (message.toLowerCase().includes("does not exist") ||
+      message.toLowerCase().includes("schema cache") ||
+      message.toLowerCase().includes("column"))
+  );
+}
+
 export async function getProjectsByCategory(
   categorySlug: string,
 ): Promise<Project[]> {
@@ -144,11 +171,22 @@ export async function getProjectsByCategory(
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("projects")
     .select(PROJECT_SELECT)
     .eq("category_id", category.id)
+    .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
+
+  if (error && isMissingSortColumn(error.message)) {
+    const fallback = await supabase
+      .from("projects")
+      .select(PROJECT_SELECT_NO_SORT)
+      .eq("category_id", category.id)
+      .order("created_at", { ascending: true });
+    data = fallback.data as any;
+    error = fallback.error;
+  }
 
   if (error) {
     console.error("getProjectsByCategory failed:", error.message);
@@ -161,10 +199,20 @@ export async function getProjectsByCategory(
 export async function getAllProjects(): Promise<Project[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("projects")
     .select(PROJECT_SELECT)
+    .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
+
+  if (error && isMissingSortColumn(error.message)) {
+    const fallback = await supabase
+      .from("projects")
+      .select(PROJECT_SELECT_NO_SORT)
+      .order("created_at", { ascending: true });
+    data = fallback.data as any;
+    error = fallback.error;
+  }
 
   if (error) {
     console.error("getAllProjects failed:", error.message);
@@ -183,12 +231,23 @@ async function fetchProjectRow(
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("projects")
     .select(PROJECT_SELECT)
     .eq("category_id", category.id)
     .eq("slug", slug)
     .maybeSingle();
+
+  if (error && isMissingSortColumn(error.message)) {
+    const fallback = await supabase
+      .from("projects")
+      .select(PROJECT_SELECT_NO_SORT)
+      .eq("category_id", category.id)
+      .eq("slug", slug)
+      .maybeSingle();
+    data = fallback.data as any;
+    error = fallback.error;
+  }
 
   if (error) {
     console.error("fetchProjectRow failed:", error.message);

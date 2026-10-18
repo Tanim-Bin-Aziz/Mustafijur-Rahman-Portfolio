@@ -1,10 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft, FileText, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { getCategory, getProjectsByCategory } from "@/lib/projects";
-import { deleteProject } from "../actions";
-import ConfirmSubmit from "@/components/dashboard/ConfirmSubmit";
+import ProjectReorderGrid from "@/components/dashboard/ProjectReorderGrid";
 
 export default async function CategoryProjectsPage({
   params,
@@ -53,75 +51,8 @@ export default async function CategoryProjectsPage({
           No projects yet. Click “Add project” to create the first one.
         </p>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <div
-              key={project.id}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-cream/10 bg-card"
-            >
-              <div className="relative aspect-[16/10] overflow-hidden">
-                {project.cover ? (
-                  <Image
-                    src={project.cover}
-                    alt={project.title}
-                    fill
-                    sizes="(max-width:640px) 100vw, 33vw"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-bg" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0B0908] via-transparent to-transparent" />
-              </div>
-
-              <div className="flex flex-1 flex-col p-4">
-                <h2 className="font-serif text-base leading-snug text-cream">
-                  {project.title}
-                </h2>
-                <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-cream/35">
-                  {project.projectType || "—"}
-                </p>
-
-                <div className="mt-4 flex items-center gap-2 border-t border-cream/10 pt-4">
-                  <Link
-                    href={`/dashboard/projects/${categorySlug}/${project.slug}`}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-cream/10 px-3 py-1.5 text-xs text-cream/60 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
-                  >
-                    <Pencil size={13} />
-                    Edit
-                  </Link>
-
-                  {project.pdfSrc && (
-                    <a
-                      href={project.pdfSrc}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="View PDF"
-                      className="inline-flex items-center rounded-full border border-cream/10 p-1.5 text-cream/50 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
-                    >
-                      <FileText size={13} />
-                    </a>
-                  )}
-
-                  <form action={deleteProject} className="ml-auto">
-                    <input type="hidden" name="projectId" value={project.id} />
-                    <input
-                      type="hidden"
-                      name="categorySlug"
-                      value={categorySlug}
-                    />
-                    <ConfirmSubmit
-                      message={`Delete “${project.title}”? This cannot be undone.`}
-                      title="Delete project"
-                      className="inline-flex items-center rounded-full border border-cream/10 p-1.5 text-cream/50 transition-colors hover:border-red-500 hover:text-red-400"
-                    >
-                      <Trash2 size={13} />
-                    </ConfirmSubmit>
-                  </form>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="mt-8">
+          <ProjectReorderGrid projects={projects} categorySlug={categorySlug} />
         </div>
       )}
     </div>

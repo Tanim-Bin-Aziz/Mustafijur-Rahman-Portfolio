@@ -52,6 +52,16 @@ function readFiles(formData: FormData, key: string) {
     .filter((value): value is File => value instanceof File && value.size > 0);
 }
 
+function isMissingSortColumn(message: string) {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("sort_order") &&
+    (lower.includes("does not exist") ||
+      lower.includes("schema cache") ||
+      lower.includes("column"))
+  );
+}
+
 function refreshPublicPages() {
   revalidatePath("/dashboard/projects");
   revalidatePath("/portfolio");
@@ -99,21 +109,48 @@ export async function createProject(
       : "";
     const pdfUrl = pdfFile ? await uploadProjectPdf(pdfFile, slug) : "";
 
-    const { data: inserted, error: insertError } = await supabase
+    const { data: lastProject } = await supabase
       .from("projects")
-      .insert({
-        slug,
-        category_id: category.id,
-        title,
-        cover: coverUrl,
-        project_type: projectType,
-        date,
-        location,
-        description,
-        pdf_url: pdfUrl,
-      })
+      .select("sort_order")
+      .eq("category_id", category.id)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const nextSortOrder = (lastProject?.sort_order ?? -1) + 1;
+
+    const insertPayload = {
+      slug,
+      category_id: category.id,
+      title,
+      cover: coverUrl,
+      project_type: projectType,
+      date,
+      location,
+      description,
+      pdf_url: pdfUrl,
+    };
+
+    let inserted: { id: string } | null = null;
+    let insertError: { message: string } | null = null;
+
+    const first = await supabase
+      .from("projects")
+      .insert({ ...insertPayload, sort_order: nextSortOrder })
       .select("id")
       .single();
+    inserted = first.data;
+    insertError = first.error;
+
+    if (insertError && isMissingSortColumn(insertError.message)) {
+      const second = await supabase
+        .from("projects")
+        .insert(insertPayload)
+        .select("id")
+        .single();
+      inserted = second.data;
+      insertError = second.error;
+    }
 
     if (insertError || !inserted) {
       return { error: insertError?.message ?? "Could not create project." };
@@ -212,6 +249,25 @@ export async function updateProject(
 
     if (updateError) return { error: updateError.message };
 
+    const imageOrderRaw = String(formData.get("imageOrder") || "");
+    let imageOrder: string[] = [];
+    try {
+      const parsed = JSON.parse(imageOrderRaw);
+      if (Array.isArray(parsed)) imageOrder = parsed.map(String);
+    } catch {
+      imageOrder = [];
+    }
+
+    if (imageOrder.length > 0) {
+      for (let i = 0; i < imageOrder.length; i += 1) {
+        await supabase
+          .from("project_images")
+          .update({ sort_order: i })
+          .eq("id", imageOrder[i])
+          .eq("project_id", projectId);
+      }
+    }
+
     const imageFiles = readFiles(formData, "images");
     if (imageFiles.length > 0) {
       const { data: lastImage } = await supabase
@@ -271,6 +327,46 @@ export async function deleteProject(formData: FormData) {
 
   refreshPublicPages();
   redirect(`/dashboard/projects/${categorySlug}`);
+}
+
+export async function reorderProjects(
+  categorySlug: string,
+  orderedIds: string[],
+): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You are not signed in." };
+
+  const { data: category } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("slug", categorySlug)
+    .maybeSingle();
+  if (!category) return { error: "Category not found." };
+
+  for (let i = 0; i < orderedIds.length; i += 1) {
+    const { error } = await supabase
+      .from("projects")
+      .update({ sort_order: i })
+      .eq("id", orderedIds[i])
+      .eq("category_id", category.id);
+
+    if (error) {
+      if (isMissingSortColumn(error.message)) {
+        return {
+          error:
+            "Projects sort_order column is missing. Run lib/supabase/migrations/014_projects_sort_order.sql first.",
+        };
+      }
+      return { error: error.message };
+    }
+  }
+
+  refreshPublicPages();
+  revalidatePath(`/dashboard/projects/${categorySlug}`);
+  return { error: null };
 }
 
 export async function deleteProjectImage(formData: FormData) {

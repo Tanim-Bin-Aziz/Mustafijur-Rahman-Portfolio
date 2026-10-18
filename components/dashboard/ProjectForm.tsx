@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useState, useRef } from "react";
+import { useActionState, useState, useRef, startTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowLeft,
   FileText,
+  GripVertical,
   ImagePlus,
   Loader2,
   Trash2,
@@ -27,6 +28,8 @@ const fieldClass =
 const labelClass =
   "mb-1.5 block font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45";
 
+type GalleryFile = { file: File; name: string; url: string };
+
 export default function ProjectForm({
   categorySlug,
   project,
@@ -43,10 +46,80 @@ export default function ProjectForm({
 
   const [coverName, setCoverName] = useState("");
   const [pdfName, setPdfName] = useState("");
-  const [galleryFiles, setGalleryFiles] = useState<{ name: string; url: string }[]>([]);
+  const [galleryFiles, setGalleryFiles] = useState<GalleryFile[]>([]);
+  const [existingImages, setExistingImages] = useState(
+    project?.imageRecords ?? [],
+  );
+  const [draggedFileIndex, setDraggedFileIndex] = useState<number | null>(null);
+  const [overFileIndex, setOverFileIndex] = useState<number | null>(null);
+  const [draggedImageId, setDraggedImageId] = useState<string | null>(null);
+  const [overImageId, setOverImageId] = useState<string | null>(null);
+
   const coverRef = useRef<HTMLInputElement>(null);
   const pdfRef = useRef<HTMLInputElement>(null);
   const imagesRef = useRef<HTMLInputElement>(null);
+
+  function moveFile(from: number, to: number) {
+    if (from === to || from < 0 || to < 0) return;
+    setGalleryFiles((prev) => {
+      const arr = [...prev];
+      const [moved] = arr.splice(from, 1);
+      arr.splice(to, 0, moved);
+      return arr;
+    });
+  }
+
+  function moveExistingImage(dragged: string, target: string) {
+    if (dragged === target) return;
+    setExistingImages((prev) => {
+      const arr = [...prev];
+      const from = arr.findIndex((img) => img.id === dragged);
+      const to = arr.findIndex((img) => img.id === target);
+      if (from < 0 || to < 0) return prev;
+      const [moved] = arr.splice(from, 1);
+      arr.splice(to, 0, moved);
+      return arr;
+    });
+  }
+
+  function handleImagesChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    setGalleryFiles((prev) => {
+      const keys = new Set(prev.map((f) => `${f.file.name}-${f.file.size}`));
+      const next = [...prev];
+      for (const file of files) {
+        const key = `${file.name}-${file.size}`;
+        if (keys.has(key)) continue;
+        keys.add(key);
+        next.push({ file, name: file.name, url: URL.createObjectURL(file) });
+      }
+      return next;
+    });
+    if (imagesRef.current) imagesRef.current.value = "";
+  }
+
+  function removeGalleryFile(index: number) {
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function removeExistingImage(id: string) {
+    const fd = new FormData();
+    fd.set("imageId", id);
+    await deleteProjectImage(fd);
+    setExistingImages((prev) => prev.filter((img) => img.id !== id));
+  }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    for (const item of galleryFiles) {
+      formData.append("images", item.file, item.file.name);
+    }
+    startTransition(() => {
+      formAction(formData);
+    });
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -73,9 +146,16 @@ export default function ProjectForm({
         </p>
       )}
 
-      <form action={formAction} className="mt-8 space-y-6">
+      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
         <input type="hidden" name="categorySlug" value={categorySlug} />
         {isEdit && <input type="hidden" name="projectId" value={project?.id} />}
+        {isEdit && (
+          <input
+            type="hidden"
+            name="imageOrder"
+            value={JSON.stringify(existingImages.map((img) => img.id))}
+          />
+        )}
 
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="sm:col-span-2">
@@ -255,23 +335,53 @@ export default function ProjectForm({
             accept="image/*"
             multiple
             className="hidden"
-            onChange={(event) => {
-              const files = Array.from(event.target.files ?? []);
-              setGalleryFiles(
-                files.map((file) => ({
-                  name: file.name,
-                  url: URL.createObjectURL(file),
-                })),
-              );
-            }}
+            onChange={handleImagesChange}
           />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => imagesRef.current?.click()}
+              className="inline-flex items-center gap-1.5 rounded-full border border-cream/15 px-3.5 py-1.5 text-xs font-medium text-cream/60 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
+            >
+              <Upload size={13} />
+              Add more images
+            </button>
+            <p className="text-xs text-cream/30">
+              Select images multiple times; new selections are added. Drag
+              thumbnails to reorder before saving.
+            </p>
+          </div>
 
           {galleryFiles.length > 0 && (
             <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
               {galleryFiles.map((file, index) => (
                 <div
-                  key={index}
-                  className="overflow-hidden rounded-lg border border-cream/10"
+                  key={`${file.name}-${index}`}
+                  draggable
+                  onDragStart={() => setDraggedFileIndex(index)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (index !== draggedFileIndex) setOverFileIndex(index);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (draggedFileIndex !== null && draggedFileIndex !== index) {
+                      moveFile(draggedFileIndex, index);
+                    }
+                    setDraggedFileIndex(null);
+                    setOverFileIndex(null);
+                  }}
+                  onDragEnd={() => {
+                    setDraggedFileIndex(null);
+                    setOverFileIndex(null);
+                  }}
+                  className={`relative overflow-hidden rounded-lg border transition-all ${
+                    draggedFileIndex === index
+                      ? "opacity-40"
+                      : overFileIndex === index
+                        ? "border-[#8DB355] ring-2 ring-[#8DB355]/40"
+                        : "border-cream/10"
+                  }`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -279,8 +389,16 @@ export default function ProjectForm({
                     alt={file.name}
                     className="aspect-[4/3] w-full object-cover"
                   />
+                  <button
+                    type="button"
+                    onClick={() => removeGalleryFile(index)}
+                    className="absolute right-1 top-1 rounded-full bg-black/70 p-1 text-cream/70 transition-colors hover:text-red-400"
+                    title="Remove"
+                  >
+                    <Trash2 size={12} />
+                  </button>
                   <div className="flex items-center gap-1.5 px-2 py-1.5">
-                    <Check size={11} className="shrink-0 text-[#8DB355]" />
+                    <GripVertical size={11} className="shrink-0 text-cream/40" />
                     <span
                       className="truncate text-[10px] text-cream/50"
                       title={file.name}
@@ -313,15 +431,41 @@ export default function ProjectForm({
         </div>
       </form>
 
-      {isEdit && project && project.imageRecords.length > 0 && (
+      {isEdit && existingImages.length > 0 && (
         <section className="mt-10 border-t border-cream/10 pt-6">
-          <h2 className={labelClass}>Current gallery images</h2>
+          <h2 className={labelClass}>
+            Current gallery images (drag to reorder, saved with Save changes)
+          </h2>
 
           <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
-            {project.imageRecords.map((image) => (
+            {existingImages.map((image) => (
               <div
                 key={image.id}
-                className="group relative overflow-hidden rounded-lg border border-cream/10"
+                draggable
+                onDragStart={() => setDraggedImageId(image.id)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (image.id !== draggedImageId) setOverImageId(image.id);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (draggedImageId && draggedImageId !== image.id) {
+                    moveExistingImage(draggedImageId, image.id);
+                  }
+                  setDraggedImageId(null);
+                  setOverImageId(null);
+                }}
+                onDragEnd={() => {
+                  setDraggedImageId(null);
+                  setOverImageId(null);
+                }}
+                className={`group relative overflow-hidden rounded-lg border transition-all ${
+                  draggedImageId === image.id
+                    ? "opacity-40"
+                    : overImageId === image.id
+                      ? "border-[#8DB355] ring-2 ring-[#8DB355]/40"
+                      : "border-cream/10"
+                }`}
               >
                 <Image
                   src={image.imageUrl}
@@ -331,16 +475,17 @@ export default function ProjectForm({
                   sizes="(max-width:640px) 33vw, 200px"
                   className="aspect-[4/3] w-full object-cover"
                 />
-                <form action={deleteProjectImage}>
-                  <input type="hidden" name="imageId" value={image.id} />
-                  <ConfirmSubmit
-                    message="Delete this image?"
-                    title="Delete image"
-                    className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-cream/70 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
-                  >
-                    <Trash2 size={14} />
-                  </ConfirmSubmit>
-                </form>
+                <button
+                  type="button"
+                  onClick={() => removeExistingImage(image.id)}
+                  className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-cream/70 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+                  title="Delete image"
+                >
+                  <Trash2 size={14} />
+                </button>
+                <div className="absolute bottom-1 left-1 rounded-full bg-black/60 p-1 text-cream/60">
+                  <GripVertical size={12} />
+                </div>
               </div>
             ))}
           </div>
