@@ -75,6 +75,23 @@ body {
   background: #8db355;
   color: #09090a;
 }
+@keyframes upload-bar {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+.animate-upload-bar {
+  animation: upload-bar 1.2s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-upload-bar {
+    animation: none;
+  }
+}
 @keyframes fade-in {
   from {
     opacity: 0;

@@ -547,7 +547,7 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
                               alt={tool.name}
                               fill
                               sizes="48px"
-                              className="object-contain p-1.5"
+                              className="object-cover"
                             />
                           ) : (
                             <Icon

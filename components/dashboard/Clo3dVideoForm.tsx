@@ -16,6 +16,10 @@ const fieldClass =
 const labelClass =
   "mb-1.5 block font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45";
 
+// Must stay under the Server Action body size limit in next.config.ts
+const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
+const MAX_VIDEO_LABEL = "500 MB";
+
 export default function Clo3dVideoForm({
   video,
   folders,
@@ -31,6 +35,30 @@ export default function Clo3dVideoForm({
   >(isEdit ? editClo3dVideo : addClo3dVideo, { error: null });
 
   const [fileName, setFileName] = useState("");
+  const [fileError, setFileError] = useState<string | null>(null);
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const input = event.target;
+    const file = input.files?.[0];
+
+    if (!file) {
+      setFileName("");
+      setFileError(null);
+      return;
+    }
+
+    if (file.size > MAX_VIDEO_BYTES) {
+      input.value = "";
+      setFileName("");
+      setFileError(
+        `That file is ${(file.size / 1024 / 1024).toFixed(0)} MB. Maximum is ${MAX_VIDEO_LABEL}.`,
+      );
+      return;
+    }
+
+    setFileError(null);
+    setFileName(file.name);
+  }
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -150,10 +178,15 @@ export default function Clo3dVideoForm({
             type="file"
             accept="video/*"
             className="hidden"
-            onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
+            onChange={handleFileChange}
           />
+          {fileError && (
+            <p className="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+              {fileError}
+            </p>
+          )}
           <p className="mt-2 text-xs text-cream/30">
-            Keep files reasonably small — large videos can fail to upload.
+            Maximum {MAX_VIDEO_LABEL}. Larger files can fail to upload.
           </p>
 
           <p className="mt-3 text-xs text-cream/30">

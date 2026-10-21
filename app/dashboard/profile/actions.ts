@@ -69,39 +69,35 @@ export async function updateProfile(
       }
     }
 
-      if (skillLogoUrls.size > 0 || skillTagLogoUrls.size > 0) {
-      for (const category of draft.skillCategories) {
+    for (const category of draft.skillCategories) {
+      if (
+        typeof category.iconImage === "string" &&
+        category.iconImage.startsWith("upload:")
+      ) {
+        const url = skillLogoUrls.get(category.iconImage.slice(7));
+        if (url) category.iconImage = url;
+        else delete category.iconImage;
+      }
+      for (const item of category.items) {
         if (
-          typeof category.iconImage === "string" &&
-          category.iconImage.startsWith("upload:")
+          typeof item.iconImage === "string" &&
+          item.iconImage.startsWith("upload:")
         ) {
-          const url = skillLogoUrls.get(category.iconImage.slice(7));
-          if (url) category.iconImage = url;
-          else delete category.iconImage;
-        }
-        for (const item of category.items) {
-          if (
-            typeof item.iconImage === "string" &&
-            item.iconImage.startsWith("upload:")
-          ) {
-            const url = skillTagLogoUrls.get(item.iconImage.slice(7));
-            if (url) item.iconImage = url;
-            else delete item.iconImage;
-          }
+          const url = skillTagLogoUrls.get(item.iconImage.slice(7));
+          if (url) item.iconImage = url;
+          else delete item.iconImage;
         }
       }
     }
 
-    if (softwareLogoUrls.size > 0) {
-      for (const tool of draft.softwareTools) {
-        if (
-          typeof tool.iconImage === "string" &&
-          tool.iconImage.startsWith("upload:")
-        ) {
-          const url = softwareLogoUrls.get(tool.iconImage.slice(7));
-          if (url) tool.iconImage = url;
-          else delete tool.iconImage;
-        }
+    for (const tool of draft.softwareTools) {
+      if (
+        typeof tool.iconImage === "string" &&
+        tool.iconImage.startsWith("upload:")
+      ) {
+        const url = softwareLogoUrls.get(tool.iconImage.slice(7));
+        if (url) tool.iconImage = url;
+        else delete tool.iconImage;
       }
     }
 

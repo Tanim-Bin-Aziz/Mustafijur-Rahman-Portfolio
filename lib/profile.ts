@@ -52,6 +52,28 @@ function mergeProfile(data: Partial<ProfileData> | null): ProfileData {
   };
 }
 
+// "upload:<key>" values are transient editor placeholders backed by a blob URL
+// that only lives in the editor's session state. If one leaks into the DB it can
+// never be recovered (the file was never uploaded), so drop it and fall back to
+// the icon instead of handing a bogus src to next/image.
+function dropUploadPlaceholders(profile: ProfileData) {
+  for (const category of profile.skillCategories) {
+    if (typeof category.iconImage === "string" && category.iconImage.startsWith("upload:")) {
+      delete category.iconImage;
+    }
+    for (const item of category.items) {
+      if (typeof item.iconImage === "string" && item.iconImage.startsWith("upload:")) {
+        delete item.iconImage;
+      }
+    }
+  }
+  for (const tool of profile.softwareTools) {
+    if (typeof tool.iconImage === "string" && tool.iconImage.startsWith("upload:")) {
+      delete tool.iconImage;
+    }
+  }
+}
+
 export async function getProfile(): Promise<ProfileData> {
   const supabase = await createClient();
 
@@ -68,7 +90,9 @@ export async function getProfile(): Promise<ProfileData> {
     return structuredClone(DEFAULT_PROFILE);
   }
 
-  return mergeProfile((data?.data ?? null) as Partial<ProfileData> | null);
+  const profile = mergeProfile((data?.data ?? null) as Partial<ProfileData> | null);
+  dropUploadPlaceholders(profile);
+  return profile;
 }
 
 export async function saveProfile(
