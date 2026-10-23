@@ -4,10 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
+  isUploadedFile,
   uploadProjectCover,
   uploadProjectImage,
   uploadProjectPdf,
-} from "@/lib/supabase/storage";
+} from "@/lib/storage";
 
 export type ProjectFormState = {
   error: string | null;
@@ -49,7 +50,7 @@ async function buildUniqueSlug(
 function readFiles(formData: FormData, key: string) {
   return formData
     .getAll(key)
-    .filter((value): value is File => value instanceof File && value.size > 0);
+    .filter((value): value is File => isUploadedFile(value) && value.size > 0);
 }
 
 function isMissingSortColumn(message: string) {

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { uploadProjectImage, uploadProjectPdf } from "@/lib/supabase/storage";
+import { isUploadedFile, uploadProjectImage, uploadProjectPdf } from "@/lib/storage";
 import {
   createCertificate,
   updateCertificate,
@@ -40,7 +40,7 @@ function readValues(formData: FormData) {
 async function resolveFileUrl(formData: FormData): Promise<string> {
   const file = formData.get("file");
 
-  if (file instanceof File && file.size > 0) {
+  if (isUploadedFile(file) && file.size > 0) {
     return fileIsPdf(file)
       ? await uploadProjectPdf(file, "certificates")
       : await uploadProjectImage(file, "certificates");

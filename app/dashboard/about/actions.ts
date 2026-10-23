@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { uploadProjectCover } from "@/lib/supabase/storage";
+import { isUploadedFile, uploadProjectCover } from "@/lib/storage";
 import { updateAboutCard, friendlyAboutError } from "@/lib/about";
 
 function errorUrl(message: string) {
@@ -28,7 +28,7 @@ export async function saveAboutCard(formData: FormData) {
   let uploadError: string | null = null;
 
   const file = formData.get("cover");
-  if (file instanceof File && file.size > 0) {
+  if (isUploadedFile(file) && file.size > 0) {
     try {
       cover = await uploadProjectCover(file, "about");
     } catch (error) {

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { uploadProjectImage } from "@/lib/supabase/storage";
+import { isUploadedFile, uploadProjectImage } from "@/lib/storage";
 import {
   createShowcaseImage,
   updateShowcaseImage,
@@ -54,11 +54,11 @@ export async function addShowcaseImage(
   let thumbnailUrl = String(formData.get("thumbnailUrl") || "").trim();
 
   try {
-    if (imageFile instanceof File && imageFile.size > 0) {
+    if (isUploadedFile(imageFile) && imageFile.size > 0) {
       imageUrl = await uploadProjectImage(imageFile, "showcase");
     }
 
-    if (thumbnailFile instanceof File && thumbnailFile.size > 0) {
+    if (isUploadedFile(thumbnailFile) && thumbnailFile.size > 0) {
       thumbnailUrl = await uploadProjectImage(thumbnailFile, "showcase");
     }
 
@@ -124,11 +124,11 @@ export async function editShowcaseImage(
   let thumbnailUrl = String(formData.get("thumbnailUrl") || "").trim();
 
   try {
-    if (imageFile instanceof File && imageFile.size > 0) {
+    if (isUploadedFile(imageFile) && imageFile.size > 0) {
       imageUrl = await uploadProjectImage(imageFile, "showcase");
     }
 
-    if (thumbnailFile instanceof File && thumbnailFile.size > 0) {
+    if (isUploadedFile(thumbnailFile) && thumbnailFile.size > 0) {
       thumbnailUrl = await uploadProjectImage(thumbnailFile, "showcase");
     }
 

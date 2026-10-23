@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { uploadProjectImage } from "@/lib/supabase/storage";
+import { isUploadedFile, uploadProjectImage } from "@/lib/storage";
 import {
   createGalleryImage,
   updateGalleryImage,
@@ -40,7 +40,7 @@ export async function addGalleryImage(
   let imageUrl = String(formData.get("imageUrl") || "").trim();
 
   try {
-    if (imageFile instanceof File && imageFile.size > 0) {
+    if (isUploadedFile(imageFile) && imageFile.size > 0) {
       const folderSlug = String(formData.get("folderSlug") || "gallery");
       imageUrl = await uploadProjectImage(imageFile, folderSlug);
     }
@@ -92,7 +92,7 @@ export async function editGalleryImage(
   let imageUrl = String(formData.get("imageUrl") || "").trim();
 
   try {
-    if (imageFile instanceof File && imageFile.size > 0) {
+    if (isUploadedFile(imageFile) && imageFile.size > 0) {
       const folderSlug = String(formData.get("folderSlug") || "gallery");
       imageUrl = await uploadProjectImage(imageFile, folderSlug);
     }

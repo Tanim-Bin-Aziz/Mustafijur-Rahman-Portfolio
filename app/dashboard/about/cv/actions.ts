@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { uploadProjectPdf } from "@/lib/supabase/storage";
+import { isUploadedFile, uploadProjectPdf } from "@/lib/storage";
 import {
   createCvDocument,
   updateCvDocument,
@@ -38,7 +38,7 @@ function readValues(formData: FormData) {
 async function resolveFileUrl(formData: FormData): Promise<string> {
   const file = formData.get("file");
 
-  if (file instanceof File && file.size > 0) {
+  if (isUploadedFile(file) && file.size > 0) {
     if (!fileIsPdf(file)) {
       throw new Error("Only PDF files are allowed for the CV.");
     }

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { uploadProjectCover, uploadProjectVideo } from "@/lib/supabase/storage";
+import { isUploadedFile, uploadProjectCover, uploadProjectVideo } from "@/lib/storage";
 import {
   createShowcaseVideoCard,
   updateShowcaseVideoCard,
@@ -25,7 +25,7 @@ function errorUrl(tab: string, message: string) {
 async function resolveUploadedVideo(formData: FormData, folder: string) {
   const file = formData.get("video");
 
-  if (file instanceof File && file.size > 0) {
+  if (isUploadedFile(file) && file.size > 0) {
     return await uploadProjectVideo(file, folder);
   }
 
@@ -157,7 +157,7 @@ export async function savePageVideo(formData: FormData) {
     if (uploaded) videoUrl = uploaded;
 
     const coverFile = formData.get("cover");
-    if (coverFile instanceof File && coverFile.size > 0) {
+    if (isUploadedFile(coverFile) && coverFile.size > 0) {
       cover = await uploadProjectCover(coverFile, "page-videos");
     }
   } catch (error) {

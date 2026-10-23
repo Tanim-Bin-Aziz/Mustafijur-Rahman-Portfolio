@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { uploadProjectImage } from "@/lib/supabase/storage";
+import { isUploadedFile, uploadProjectImage } from "@/lib/storage";
 import { saveProfile, friendlyProfileError } from "@/lib/profile";
 import { DEFAULT_PROFILE, type ProfileData } from "@/data/profile";
 
@@ -42,7 +42,7 @@ export async function updateProfile(
 
   try {
     const logoFile = formData.get("logo");
-    if (logoFile instanceof File && logoFile.size > 0) {
+    if (isUploadedFile(logoFile) && logoFile.size > 0) {
       draft.avatar = await uploadProjectImage(logoFile, "profile");
     }
 
@@ -50,7 +50,7 @@ export async function updateProfile(
     const skillTagLogoUrls = new Map<string, string>();
     const softwareLogoUrls = new Map<string, string>();
     for (const [fieldKey, value] of formData.entries()) {
-      if (!(value instanceof File) || value.size <= 0) continue;
+      if (!isUploadedFile(value) || value.size <= 0) continue;
       if (fieldKey.startsWith("skill-tag-icon-")) {
         skillTagLogoUrls.set(
           fieldKey.slice("skill-tag-icon-".length),

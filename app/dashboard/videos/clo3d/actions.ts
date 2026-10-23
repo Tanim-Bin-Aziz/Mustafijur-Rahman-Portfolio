@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { uploadProjectVideo } from "@/lib/supabase/storage";
+import { isUploadedFile, uploadProjectVideo } from "@/lib/storage";
 import {
   createClo3dVideo,
   updateClo3dVideo,
@@ -32,7 +32,7 @@ function readValues(formData: FormData) {
 async function resolveVideoUrl(formData: FormData): Promise<string> {
   const file = formData.get("video");
 
-  if (file instanceof File && file.size > 0) {
+  if (isUploadedFile(file) && file.size > 0) {
     return await uploadProjectVideo(file, "clo3d");
   }
 
