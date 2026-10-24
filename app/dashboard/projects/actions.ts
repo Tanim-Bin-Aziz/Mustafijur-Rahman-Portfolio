@@ -3,12 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import {
-  isUploadedFile,
-  uploadProjectCover,
-  uploadProjectImage,
-  uploadProjectPdf,
-} from "@/lib/storage";
 
 export type ProjectFormState = {
   error: string | null;
@@ -47,10 +41,21 @@ async function buildUniqueSlug(
   }
 }
 
-function readFiles(formData: FormData, key: string) {
-  return formData
-    .getAll(key)
-    .filter((value): value is File => isUploadedFile(value) && value.size > 0);
+/** The browser already uploaded these to R2, so only URLs arrive here. */
+function readUrl(formData: FormData, key: string) {
+  return String(formData.get(key) || "").trim();
+}
+
+function readUrlList(formData: FormData, key: string) {
+  const raw = String(formData.get(key) || "").trim();
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.map(String).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
 }
 
 function isMissingSortColumn(message: string) {
@@ -102,13 +107,8 @@ export async function createProject(
   );
 
   try {
-    const coverFile = readFiles(formData, "cover")[0];
-    const pdfFile = readFiles(formData, "pdf")[0];
-
-    const coverUrl = coverFile
-      ? await uploadProjectCover(coverFile, slug)
-      : "";
-    const pdfUrl = pdfFile ? await uploadProjectPdf(pdfFile, slug) : "";
+    const coverUrl = readUrl(formData, "coverUrl");
+    const pdfUrl = readUrl(formData, "pdfUrl");
 
     const { data: lastProject } = await supabase
       .from("projects")
@@ -157,17 +157,13 @@ export async function createProject(
       return { error: insertError?.message ?? "Could not create project." };
     }
 
-    const imageFiles = readFiles(formData, "images");
-    if (imageFiles.length > 0) {
-      const rows = [];
-      for (let i = 0; i < imageFiles.length; i += 1) {
-        const url = await uploadProjectImage(imageFiles[i], slug);
-        rows.push({
-          project_id: inserted.id,
-          image_url: url,
-          sort_order: i,
-        });
-      }
+    const imageUrls = readUrlList(formData, "newImages");
+    if (imageUrls.length > 0) {
+      const rows = imageUrls.map((url, index) => ({
+        project_id: inserted.id,
+        image_url: url,
+        sort_order: index,
+      }));
 
       const { error: imageError } = await supabase
         .from("project_images")
@@ -179,7 +175,7 @@ export async function createProject(
     }
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : "Upload failed.",
+      error: error instanceof Error ? error.message : "Could not save the project.",
     };
   }
 
@@ -224,15 +220,8 @@ export async function updateProject(
   );
 
   try {
-    const coverFile = readFiles(formData, "cover")[0];
-    const pdfFile = readFiles(formData, "pdf")[0];
-
-    const coverUrl = coverFile
-      ? await uploadProjectCover(coverFile, slug)
-      : existing.cover;
-    const pdfUrl = pdfFile
-      ? await uploadProjectPdf(pdfFile, slug)
-      : existing.pdf_url;
+    const coverUrl = readUrl(formData, "coverUrl") || existing.cover;
+    const pdfUrl = readUrl(formData, "pdfUrl") || existing.pdf_url;
 
     const { error: updateError } = await supabase
       .from("projects")
@@ -269,8 +258,8 @@ export async function updateProject(
       }
     }
 
-    const imageFiles = readFiles(formData, "images");
-    if (imageFiles.length > 0) {
+    const newImageUrls = readUrlList(formData, "newImages");
+    if (newImageUrls.length > 0) {
       const { data: lastImage } = await supabase
         .from("project_images")
         .select("sort_order")
@@ -281,15 +270,11 @@ export async function updateProject(
 
       const startOrder = (lastImage?.sort_order ?? -1) + 1;
 
-      const rows = [];
-      for (let i = 0; i < imageFiles.length; i += 1) {
-        const url = await uploadProjectImage(imageFiles[i], slug);
-        rows.push({
-          project_id: projectId,
-          image_url: url,
-          sort_order: startOrder + i,
-        });
-      }
+      const rows = newImageUrls.map((url, index) => ({
+        project_id: projectId,
+        image_url: url,
+        sort_order: startOrder + index,
+      }));
 
       const { error: imageError } = await supabase
         .from("project_images")
@@ -303,7 +288,7 @@ export async function updateProject(
     }
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : "Upload failed.",
+      error: error instanceof Error ? error.message : "Could not save the project.",
     };
   }
 

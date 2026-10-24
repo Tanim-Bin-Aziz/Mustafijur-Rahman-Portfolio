@@ -11,7 +11,6 @@ import {
   Loader2,
   Trash2,
   Upload,
-  Check,
 } from "lucide-react";
 import {
   createProject,
@@ -19,6 +18,8 @@ import {
   deleteProjectImage,
   type ProjectFormState,
 } from "@/app/dashboard/projects/actions";
+import DirectFileInput from "@/components/dashboard/DirectFileInput";
+import { uploadFileDirect } from "@/lib/upload-client";
 import type { ProjectWithImages } from "@/lib/projects";
 import ConfirmSubmit from "./ConfirmSubmit";
 
@@ -28,7 +29,7 @@ const fieldClass =
 const labelClass =
   "mb-1.5 block font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45";
 
-type GalleryFile = { file: File; name: string; url: string };
+type GalleryFile = { key: string; name: string; url: string; uploading: boolean };
 
 export default function ProjectForm({
   categorySlug,
@@ -38,15 +39,17 @@ export default function ProjectForm({
   project?: ProjectWithImages;
 }) {
   const isEdit = Boolean(project);
+  const uploadFolder = project?.slug || categorySlug;
 
   const [state, formAction, isPending] = useActionState<ProjectFormState, FormData>(
     isEdit ? updateProject : createProject,
     { error: null },
   );
 
-  const [coverName, setCoverName] = useState("");
-  const [pdfName, setPdfName] = useState("");
+  const [coverUrl, setCoverUrl] = useState(project?.cover ?? "");
+  const [pdfUrl, setPdfUrl] = useState(project?.pdfSrc ?? "");
   const [galleryFiles, setGalleryFiles] = useState<GalleryFile[]>([]);
+  const [galleryError, setGalleryError] = useState<string | null>(null);
   const [existingImages, setExistingImages] = useState(
     project?.imageRecords ?? [],
   );
@@ -55,8 +58,6 @@ export default function ProjectForm({
   const [draggedImageId, setDraggedImageId] = useState<string | null>(null);
   const [overImageId, setOverImageId] = useState<string | null>(null);
 
-  const coverRef = useRef<HTMLInputElement>(null);
-  const pdfRef = useRef<HTMLInputElement>(null);
   const imagesRef = useRef<HTMLInputElement>(null);
 
   function moveFile(from: number, to: number) {
@@ -82,20 +83,43 @@ export default function ProjectForm({
     });
   }
 
-  function handleImagesChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImagesChange(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
-    setGalleryFiles((prev) => {
-      const keys = new Set(prev.map((f) => `${f.file.name}-${f.file.size}`));
-      const next = [...prev];
-      for (const file of files) {
-        const key = `${file.name}-${file.size}`;
-        if (keys.has(key)) continue;
-        keys.add(key);
-        next.push({ file, name: file.name, url: URL.createObjectURL(file) });
-      }
-      return next;
-    });
     if (imagesRef.current) imagesRef.current.value = "";
+
+    const pending = files.map((file) => ({
+      file,
+      key: `${file.name}-${file.size}-${Math.random().toString(36).slice(2)}`,
+    }));
+
+    setGalleryError(null);
+    setGalleryFiles((prev) => [
+      ...prev,
+      ...pending.map(({ file, key }) => ({
+        key,
+        name: file.name,
+        url: "",
+        uploading: true,
+      })),
+    ]);
+
+    await Promise.all(
+      pending.map(async ({ file, key }) => {
+        try {
+          const url = await uploadFileDirect(file, "image", uploadFolder);
+          setGalleryFiles((prev) =>
+            prev.map((item) =>
+              item.key === key ? { ...item, url, uploading: false } : item,
+            ),
+          );
+        } catch (error) {
+          setGalleryFiles((prev) => prev.filter((item) => item.key !== key));
+          setGalleryError(
+            error instanceof Error ? error.message : "Image upload failed.",
+          );
+        }
+      }),
+    );
   }
 
   function removeGalleryFile(index: number) {
@@ -111,11 +135,17 @@ export default function ProjectForm({
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    for (const item of galleryFiles) {
-      formData.append("images", item.file, item.file.name);
+
+    if (galleryFiles.some((item) => item.uploading)) {
+      setGalleryError("Wait for the gallery images to finish uploading.");
+      return;
     }
+
+    const formData = new FormData(e.currentTarget);
+    formData.set(
+      "newImages",
+      JSON.stringify(galleryFiles.map((item) => item.url).filter(Boolean)),
+    );
     startTransition(() => {
       formAction(formData);
     });
@@ -241,48 +271,41 @@ export default function ProjectForm({
         <div className="grid gap-5 border-t border-cream/10 pt-6 sm:grid-cols-2">
           <div>
             <span className={labelClass}>Cover image</span>
-            {project?.cover && (
+            {coverUrl && (
               <div className="mb-3 flex items-center gap-3">
                 <div className="relative h-16 w-24 overflow-hidden rounded-lg border border-cream/10">
                   <Image
-                    src={project.cover}
+                    src={coverUrl}
                     alt="Current cover"
                     fill
                     sizes="96px"
                     className="object-cover"
                   />
                 </div>
-                <span className="text-xs text-cream/40">Current cover</span>
+                <span className="text-xs text-cream/40">
+                  {isEdit ? "Current cover" : "Selected cover"}
+                </span>
               </div>
             )}
-            <label
-              htmlFor="cover"
-              className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-cream/15 px-4 py-3 text-sm text-cream/50 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
-            >
-              <ImagePlus size={16} />
-              {coverName || "Choose cover image"}
-            </label>
-            <input
-              ref={coverRef}
-              id="cover"
-              name="cover"
-              type="file"
+            <DirectFileInput
+              urlName="coverUrl"
               accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                setCoverName(file?.name || "");
-              }}
+              kind="cover"
+              folder={uploadFolder}
+              existingUrl={project?.cover ?? ""}
+              label="Choose cover image"
+              icon={<ImagePlus size={16} />}
+              onUrlChange={setCoverUrl}
             />
           </div>
 
           <div>
             <span className={labelClass}>PDF file</span>
-            {project?.pdfSrc && (
+            {pdfUrl && (
               <div className="mb-3 flex items-center gap-3">
                 <FileText size={20} className="text-[#8DB355]" />
                 <a
-                  href={project.pdfSrc}
+                  href={pdfUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="truncate text-xs text-cream/50 underline decoration-cream/20 hover:text-[#8DB355]"
@@ -291,24 +314,15 @@ export default function ProjectForm({
                 </a>
               </div>
             )}
-            <label
-              htmlFor="pdf"
-              className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-cream/15 px-4 py-3 text-sm text-cream/50 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
-            >
-              <FileText size={16} />
-              {pdfName || "Choose PDF"}
-            </label>
-            <input
-              ref={pdfRef}
-              id="pdf"
-              name="pdf"
-              type="file"
+            <DirectFileInput
+              urlName="pdfUrl"
               accept="application/pdf"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                setPdfName(file?.name || "");
-              }}
+              kind="pdf"
+              folder={uploadFolder}
+              existingUrl={project?.pdfSrc ?? ""}
+              label="Choose PDF"
+              icon={<FileText size={16} />}
+              onUrlChange={setPdfUrl}
             />
           </div>
         </div>
@@ -330,7 +344,6 @@ export default function ProjectForm({
           <input
             ref={imagesRef}
             id="images"
-            name="images"
             type="file"
             accept="image/*"
             multiple
@@ -352,11 +365,17 @@ export default function ProjectForm({
             </p>
           </div>
 
+          {galleryError && (
+            <p className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+              {galleryError}
+            </p>
+          )}
+
           {galleryFiles.length > 0 && (
             <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
               {galleryFiles.map((file, index) => (
                 <div
-                  key={`${file.name}-${index}`}
+                  key={file.key}
                   draggable
                   onDragStart={() => setDraggedFileIndex(index)}
                   onDragOver={(e) => {
@@ -383,12 +402,21 @@ export default function ProjectForm({
                         : "border-cream/10"
                   }`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={file.url}
-                    alt={file.name}
-                    className="aspect-[4/3] w-full object-cover"
-                  />
+                  {file.uploading ? (
+                    <div className="flex aspect-[4/3] w-full items-center justify-center bg-black/30">
+                      <Loader2
+                        size={16}
+                        className="animate-spin text-[#8DB355]"
+                      />
+                    </div>
+                  ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={file.url}
+                      alt={file.name}
+                      className="aspect-[4/3] w-full object-cover"
+                    />
+                  )}
                   <button
                     type="button"
                     onClick={() => removeGalleryFile(index)}

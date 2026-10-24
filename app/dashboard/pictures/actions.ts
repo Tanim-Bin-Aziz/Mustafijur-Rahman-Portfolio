@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isUploadedFile, uploadProjectImage } from "@/lib/storage";
 import {
   createGalleryImage,
   updateGalleryImage,
@@ -36,15 +35,9 @@ export async function addGalleryImage(
   if (!folderId) return { error: "Please select a folder." };
   if (!title) return { error: "Title is required." };
 
-  const imageFile = formData.get("image");
-  let imageUrl = String(formData.get("imageUrl") || "").trim();
+  const imageUrl = String(formData.get("imageUrl") || "").trim();
 
   try {
-    if (isUploadedFile(imageFile) && imageFile.size > 0) {
-      const folderSlug = String(formData.get("folderSlug") || "gallery");
-      imageUrl = await uploadProjectImage(imageFile, folderSlug);
-    }
-
     if (!imageUrl) {
       return { error: "Please upload an image or provide an image URL." };
     }
@@ -88,15 +81,9 @@ export async function editGalleryImage(
   if (!folderId) return { error: "Please select a folder." };
   if (!title) return { error: "Title is required." };
 
-  const imageFile = formData.get("image");
-  let imageUrl = String(formData.get("imageUrl") || "").trim();
+  const imageUrl = String(formData.get("imageUrl") || "").trim();
 
   try {
-    if (isUploadedFile(imageFile) && imageFile.size > 0) {
-      const folderSlug = String(formData.get("folderSlug") || "gallery");
-      imageUrl = await uploadProjectImage(imageFile, folderSlug);
-    }
-
     if (!imageUrl) {
       return { error: "Please upload an image or provide an image URL." };
     }

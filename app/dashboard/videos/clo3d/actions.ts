@@ -3,14 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isUploadedFile, uploadProjectVideo } from "@/lib/storage";
 import {
   createClo3dVideo,
   updateClo3dVideo,
   deleteClo3dVideo,
   createClo3dFolder,
   deleteClo3dFolder,
-  friendlyClo3dError,
 } from "@/lib/clo3d";
 
 export type Clo3dFormState = {
@@ -29,13 +27,7 @@ function readValues(formData: FormData) {
   };
 }
 
-async function resolveVideoUrl(formData: FormData): Promise<string> {
-  const file = formData.get("video");
-
-  if (isUploadedFile(file) && file.size > 0) {
-    return await uploadProjectVideo(file, "clo3d");
-  }
-
+function readVideoUrl(formData: FormData) {
   return String(formData.get("videoUrl") || "").trim();
 }
 
@@ -51,32 +43,20 @@ export async function addClo3dVideo(
   if (!user) return { error: "You are not signed in." };
 
   const values = readValues(formData);
+  const videoUrl = readVideoUrl(formData);
 
   if (!values.title) return { error: "Title is required." };
 
-  let videoUrl = "";
-
-  try {
-    videoUrl = await resolveVideoUrl(formData);
-
-    if (!videoUrl) {
-      return { error: "Please upload a video or provide a URL." };
-    }
-
-    const { id, error } = await createClo3dVideo({
-      ...values,
-      videoUrl,
-    });
-
-    if (!id) return { error: error ?? "Could not save the video." };
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? friendlyClo3dError(error.message)
-          : "Upload failed.",
-    };
+  if (!videoUrl) {
+    return { error: "Please upload a video or provide a URL." };
   }
+
+  const { id, error } = await createClo3dVideo({
+    ...values,
+    videoUrl,
+  });
+
+  if (!id) return { error: error ?? "Could not save the video." };
 
   revalidatePath("/video/clo-3d");
   revalidatePath("/dashboard/videos");
@@ -98,31 +78,19 @@ export async function editClo3dVideo(
   if (!videoId) return { error: "Missing video id." };
 
   const values = readValues(formData);
+  const videoUrl = readVideoUrl(formData);
   if (!values.title) return { error: "Title is required." };
 
-  let videoUrl = "";
-
-  try {
-    videoUrl = await resolveVideoUrl(formData);
-
-    if (!videoUrl) {
-      return { error: "Please upload a video or provide a URL." };
-    }
-
-    const { ok, error } = await updateClo3dVideo(videoId, {
-      ...values,
-      videoUrl,
-    });
-
-    if (!ok) return { error: error ?? "Could not update the video." };
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? friendlyClo3dError(error.message)
-          : "Upload failed.",
-    };
+  if (!videoUrl) {
+    return { error: "Please upload a video or provide a URL." };
   }
+
+  const { ok, error } = await updateClo3dVideo(videoId, {
+    ...values,
+    videoUrl,
+  });
+
+  if (!ok) return { error: error ?? "Could not update the video." };
 
   revalidatePath("/video/clo-3d");
   revalidatePath("/dashboard/videos");

@@ -1,13 +1,14 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, FileText, FileUp, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, FileUp, Loader2 } from "lucide-react";
 import {
   addCvDocument,
   editCvDocument,
   type CvFormState,
 } from "@/app/dashboard/about/cv/actions";
+import DirectFileInput from "@/components/dashboard/DirectFileInput";
 import type { CvDocument } from "@/lib/cv";
 
 const fieldClass =
@@ -23,8 +24,6 @@ export default function CvForm({ cv }: { cv?: CvDocument }) {
     CvFormState,
     FormData
   >(isEdit ? editCvDocument : addCvDocument, { error: null });
-
-  const [fileName, setFileName] = useState("");
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -86,32 +85,7 @@ export default function CvForm({ cv }: { cv?: CvDocument }) {
         <div>
           <span className={labelClass}>CV file (pdf only)</span>
 
-          <label
-            htmlFor="file"
-            className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-cream/15 px-4 py-3 text-sm text-cream/50 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
-          >
-            {fileName ? (
-              <>
-                <Check size={16} className="text-[#8DB355]" />
-                <span className="truncate text-cream/70">{fileName}</span>
-              </>
-            ) : (
-              <>
-                <FileUp size={16} />
-                Choose CV file
-              </>
-            )}
-          </label>
-          <input
-            id="file"
-            name="file"
-            type="file"
-            accept="application/pdf,.pdf"
-            className="hidden"
-            onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
-          />
-
-          <div className="mt-4 flex items-center gap-3 rounded-lg border border-cream/10 bg-black/20 px-4 py-3">
+          <div className="mb-4 flex items-center gap-3 rounded-lg border border-cream/10 bg-black/20 px-4 py-3">
             <FileText size={20} className="shrink-0 text-red-400" />
             <span className="text-xs text-cream/40">
               {isEdit
@@ -120,14 +94,15 @@ export default function CvForm({ cv }: { cv?: CvDocument }) {
             </span>
           </div>
 
-          <p className="mt-3 text-xs text-cream/30">
-            Or paste a URL below (used when no file is chosen):
-          </p>
-          <input
-            name="fileUrl"
-            defaultValue={cv?.fileUrl ?? ""}
+          <DirectFileInput
+            urlName="fileUrl"
+            accept="application/pdf,.pdf"
+            kind="pdf"
+            folder="cv"
+            existingUrl={cv?.fileUrl ?? ""}
+            label="Choose CV file"
+            icon={<FileUp size={16} />}
             placeholder="https://.../cv.pdf"
-            className={`${fieldClass} mt-2`}
           />
         </div>
 

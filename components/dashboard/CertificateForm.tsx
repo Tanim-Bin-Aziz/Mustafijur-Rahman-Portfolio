@@ -1,14 +1,15 @@
 "use client";
 
-import { useActionState, useState, useRef } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Check, FileText, FileUp, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, FileUp, Loader2 } from "lucide-react";
 import {
   addCertificate,
   editCertificate,
   type CertificateFormState,
 } from "@/app/dashboard/certificates/actions";
+import DirectFileInput from "@/components/dashboard/DirectFileInput";
 import type { Certificate } from "@/lib/certificates";
 
 const fieldClass =
@@ -33,11 +34,9 @@ export default function CertificateForm({
     FormData
   >(isEdit ? editCertificate : addCertificate, { error: null });
 
-  const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState(certificate?.fileUrl ?? "");
-  const fileRef = useRef<HTMLInputElement>(null);
 
-  const previewIsPdf = looksPdf(fileName || previewUrl);
+  const previewIsPdf = looksPdf(previewUrl);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -138,49 +137,17 @@ export default function CertificateForm({
             </div>
           )}
 
-          <label
-            htmlFor="file"
-            className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-cream/15 px-4 py-3 text-sm text-cream/50 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
-          >
-            {fileName ? (
-              <>
-                <Check size={16} className="text-[#8DB355]" />
-                <span className="truncate text-cream/70">{fileName}</span>
-              </>
-            ) : (
-              <>
-                <FileUp size={16} />
-                Choose certificate file
-              </>
-            )}
-          </label>
-          <input
-            ref={fileRef}
-            id="file"
-            name="file"
-            type="file"
+          <DirectFileInput
+            urlName="fileUrl"
             accept="image/*,.pdf,application/pdf"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              setFileName(file?.name || "");
-              if (file && !file.name.toLowerCase().endsWith(".pdf")) {
-                setPreviewUrl(URL.createObjectURL(file));
-              } else if (file) {
-                setPreviewUrl("pdf://local");
-              }
-            }}
-          />
-
-          <p className="mt-3 text-xs text-cream/30">
-            Or paste a URL below (used when no file is chosen):
-          </p>
-          <input
-            name="fileUrl"
-            defaultValue={certificate?.fileUrl ?? ""}
-            placeholder="https://..."
-            className={`${fieldClass} mt-2`}
-            onChange={(e) => setPreviewUrl(e.target.value)}
+            kind={(file) =>
+              file.name.toLowerCase().endsWith(".pdf") ? "pdf" : "image"
+            }
+            folder="certificates"
+            existingUrl={certificate?.fileUrl ?? ""}
+            label="Choose certificate file"
+            icon={<FileUp size={16} />}
+            onUrlChange={setPreviewUrl}
           />
         </div>
 

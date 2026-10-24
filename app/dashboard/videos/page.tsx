@@ -40,6 +40,7 @@ import {
 } from "./actions";
 import ConfirmSubmit from "@/components/dashboard/ConfirmSubmit";
 import Clo3dFolderAdd from "@/components/dashboard/Clo3dFolderAdd";
+import DirectFileInput from "@/components/dashboard/DirectFileInput";
 import UploadSubmit, { UploadProgress } from "@/components/dashboard/UploadSubmit";
 
 const TABS = [
@@ -356,23 +357,15 @@ function ShowcaseTab({ cards }: { cards: ShowcaseVideoCard[] }) {
         </div>
 
         <div className="mt-4">
-          <label className={labelClass} htmlFor="sc-video">
-            Video file (mp4)
-          </label>
-          <input
-            id="sc-video"
-            name="video"
-            type="file"
+          <span className={labelClass}>Video file (mp4)</span>
+          <DirectFileInput
+            urlName="videoUrl"
             accept="video/*"
-            className="block w-full text-sm text-cream/60 file:mr-3 file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8DB355]"
-          />
-          <p className="mt-2 text-xs text-cream/30">
-            Or paste a URL in the field below:
-          </p>
-          <input
-            name="videoUrl"
+            kind="video"
+            folder="showcase"
+            label="Choose video file"
+            icon={<Film size={16} />}
             placeholder="https://.../video.mp4"
-            className={`${fieldClass} mt-2`}
           />
         </div>
 
@@ -446,18 +439,17 @@ function ShowcaseTab({ cards }: { cards: ShowcaseVideoCard[] }) {
                 </div>
 
                 <div>
-                  <label
-                    className={labelClass}
-                    htmlFor={`sc-edit-video-${card.id}`}
-                  >
+                  <span className={labelClass}>
                     New video (leave empty to keep current)
-                  </label>
-                  <input
-                    id={`sc-edit-video-${card.id}`}
-                    name="video"
-                    type="file"
+                  </span>
+                  <DirectFileInput
+                    urlName="videoUrl"
                     accept="video/*"
-                    className="block w-full text-sm text-cream/60 file:mr-3 file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8DB355]"
+                    kind="video"
+                    folder="showcase"
+                    label="Choose new video"
+                    icon={<Film size={16} />}
+                    placeholder="https://.../video.mp4"
                   />
                 </div>
 
@@ -576,28 +568,31 @@ function PageVideoTab({
         </div>
 
         <div>
-          <label className={labelClass} htmlFor={`video-${video.slug}`}>
+          <span className={labelClass}>
             Video file (leave empty to keep current)
-          </label>
-          <input
-            id={`video-${video.slug}`}
-            name="video"
-            type="file"
+          </span>
+          <DirectFileInput
+            urlName="videoUrl"
             accept="video/*"
-            className="block w-full text-sm text-cream/60 file:mr-3 file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8DB355]"
+            kind="video"
+            folder="page-videos"
+            label="Choose video file"
+            icon={<Film size={16} />}
+            placeholder="https://.../video.mp4"
           />
         </div>
 
         <div>
-          <label className={labelClass} htmlFor={`cover-${video.slug}`}>
+          <span className={labelClass}>
             Cover image (leave empty to keep current)
-          </label>
-          <input
-            id={`cover-${video.slug}`}
-            name="cover"
-            type="file"
+          </span>
+          <DirectFileInput
+            urlName="coverUrl"
             accept="image/*"
-            className="block w-full text-sm text-cream/60 file:mr-3 file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8DB355]"
+            kind="cover"
+            folder="page-videos"
+            label="Choose cover image"
+            icon={<Images size={16} />}
           />
         </div>
 
@@ -672,23 +667,15 @@ function AdditionalWorkTab({ videos }: { videos: AdditionalWorkVideo[] }) {
         </div>
 
         <div className="mt-4">
-          <label className={labelClass} htmlFor="aw-video">
-            Video file (mp4)
-          </label>
-          <input
-            id="aw-video"
-            name="video"
-            type="file"
+          <span className={labelClass}>Video file (mp4)</span>
+          <DirectFileInput
+            urlName="videoUrl"
             accept="video/*"
-            className="block w-full text-sm text-cream/60 file:mr-3 file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8DB355]"
-          />
-          <p className="mt-2 text-xs text-cream/30">
-            Or paste a URL in the field below:
-          </p>
-          <input
-            name="videoUrl"
+            kind="video"
+            folder="additional-work"
+            label="Choose video file"
+            icon={<Film size={16} />}
             placeholder="https://.../video.mp4"
-            className={`${fieldClass} mt-2`}
           />
         </div>
 
@@ -768,18 +755,17 @@ function AdditionalWorkTab({ videos }: { videos: AdditionalWorkVideo[] }) {
                 </div>
 
                 <div>
-                  <label
-                    className={labelClass}
-                    htmlFor={`aw-edit-video-${video.id}`}
-                  >
+                  <span className={labelClass}>
                     New video (leave empty to keep current)
-                  </label>
-                  <input
-                    id={`aw-edit-video-${video.id}`}
-                    name="video"
-                    type="file"
+                  </span>
+                  <DirectFileInput
+                    urlName="videoUrl"
                     accept="video/*"
-                    className="block w-full text-sm text-cream/60 file:mr-3 file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8DB355]"
+                    kind="video"
+                    folder="additional-work"
+                    label="Choose new video"
+                    icon={<Film size={16} />}
+                    placeholder="https://.../video.mp4"
                   />
                 </div>
 

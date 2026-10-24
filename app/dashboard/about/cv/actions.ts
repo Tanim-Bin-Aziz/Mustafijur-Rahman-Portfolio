@@ -3,24 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isUploadedFile, uploadProjectPdf } from "@/lib/storage";
 import {
   createCvDocument,
   updateCvDocument,
   deleteCvDocument,
-  friendlyCvError,
 } from "@/lib/cv";
 
 export type CvFormState = {
   error: string | null;
 };
-
-function fileIsPdf(file: File) {
-  return (
-    file.type === "application/pdf" ||
-    file.name.toLowerCase().endsWith(".pdf")
-  );
-}
 
 function readValues(formData: FormData) {
   const title = String(formData.get("title") || "").trim();
@@ -35,16 +26,7 @@ function readValues(formData: FormData) {
   };
 }
 
-async function resolveFileUrl(formData: FormData): Promise<string> {
-  const file = formData.get("file");
-
-  if (isUploadedFile(file) && file.size > 0) {
-    if (!fileIsPdf(file)) {
-      throw new Error("Only PDF files are allowed for the CV.");
-    }
-    return await uploadProjectPdf(file, "cv");
-  }
-
+function readFileUrl(formData: FormData) {
   return String(formData.get("fileUrl") || "").trim();
 }
 
@@ -60,30 +42,16 @@ export async function addCvDocument(
   if (!user) return { error: "You are not signed in." };
 
   const values = readValues(formData);
+  const fileUrl = readFileUrl(formData);
 
-  let fileUrl = "";
+  if (!fileUrl) return { error: "Please upload a PDF or provide a URL." };
 
-  try {
-    fileUrl = await resolveFileUrl(formData);
+  const { id, error } = await createCvDocument({
+    ...values,
+    fileUrl,
+  });
 
-    if (!fileUrl) {
-      return { error: "Please upload a PDF or provide a URL." };
-    }
-
-    const { id, error } = await createCvDocument({
-      ...values,
-      fileUrl,
-    });
-
-    if (!id) return { error: error ?? "Could not save the CV." };
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? friendlyCvError(error.message)
-          : "Upload failed.",
-    };
-  }
+  if (!id) return { error: error ?? "Could not save the CV." };
 
   revalidatePath("/about/cv");
   revalidatePath("/dashboard/about");
@@ -105,30 +73,16 @@ export async function editCvDocument(
   if (!cvId) return { error: "Missing CV id." };
 
   const values = readValues(formData);
+  const fileUrl = readFileUrl(formData);
 
-  let fileUrl = "";
+  if (!fileUrl) return { error: "Please upload a PDF or provide a URL." };
 
-  try {
-    fileUrl = await resolveFileUrl(formData);
+  const { ok, error } = await updateCvDocument(cvId, {
+    ...values,
+    fileUrl,
+  });
 
-    if (!fileUrl) {
-      return { error: "Please upload a PDF or provide a URL." };
-    }
-
-    const { ok, error } = await updateCvDocument(cvId, {
-      ...values,
-      fileUrl,
-    });
-
-    if (!ok) return { error: error ?? "Could not update the CV." };
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? friendlyCvError(error.message)
-          : "Upload failed.",
-    };
-  }
+  if (!ok) return { error: error ?? "Could not update the CV." };
 
   revalidatePath("/about/cv");
   revalidatePath("/dashboard/about");

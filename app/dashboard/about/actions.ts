@@ -3,8 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isUploadedFile, uploadProjectCover } from "@/lib/storage";
-import { updateAboutCard, friendlyAboutError } from "@/lib/about";
+import { updateAboutCard } from "@/lib/about";
 
 function errorUrl(message: string) {
   return `/dashboard/about?error=${encodeURIComponent(message)}`;
@@ -24,22 +23,7 @@ export async function saveAboutCard(formData: FormData) {
   if (!id) redirect(errorUrl("Missing card id."));
   if (!title) redirect(errorUrl("Title is required."));
 
-  let cover: string | null = null;
-  let uploadError: string | null = null;
-
-  const file = formData.get("cover");
-  if (isUploadedFile(file) && file.size > 0) {
-    try {
-      cover = await uploadProjectCover(file, "about");
-    } catch (error) {
-      uploadError =
-        error instanceof Error
-          ? friendlyAboutError(error.message)
-          : "Image upload failed.";
-    }
-  }
-
-  if (uploadError) redirect(errorUrl(uploadError));
+  const cover = String(formData.get("coverUrl") || "").trim() || null;
 
   const { error, slug } = await updateAboutCard(id, { title, cover });
 

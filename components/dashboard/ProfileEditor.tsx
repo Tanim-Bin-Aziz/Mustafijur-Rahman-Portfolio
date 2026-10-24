@@ -24,6 +24,7 @@ import {
 } from "@/app/dashboard/profile/actions";
 import type { IconType } from "react-icons";
 import { loadFullIconMap, type IconMap } from "@/lib/icons";
+import { uploadFileDirect } from "@/lib/upload-client";
 import {
   DEFAULT_PROFILE,
   findIconName,
@@ -258,9 +259,8 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
   const [logoPreview, setLogoPreview] = useState(profile.avatar);
   const [fileName, setFileName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
-  const skillLogoRef = useRef<Map<string, { url: string; name: string }>>(
-    new Map(),
-  );
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const [state, formAction, isPending] = useActionState<
     ProfileFormState,
@@ -269,6 +269,30 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
 
   const set = <K extends keyof ProfileData>(key: K, value: ProfileData[K]) =>
     setDraft((prev) => ({ ...prev, [key]: value }));
+
+  /**
+   * Images go straight to R2 from the browser, so the draft JSON only ever
+   * holds final URLs (no files ride along with the form).
+   */
+  async function uploadImage(
+    key: string,
+    file: File,
+    folder: string,
+    apply: (url: string) => void,
+  ) {
+    setUploadingKey(key);
+    setUploadError(null);
+
+    try {
+      apply(await uploadFileDirect(file, "image", folder));
+    } catch (error) {
+      setUploadError(
+        error instanceof Error ? error.message : "Image upload failed.",
+      );
+    } finally {
+      setUploadingKey(null);
+    }
+  }
 
   const discard = () => {
     setDraft(clone(profile));
@@ -356,6 +380,12 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
         </div>
       </div>
 
+      {uploadError && (
+        <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {uploadError}
+        </p>
+      )}
+
       <form id="profile-form" action={formAction} className="space-y-6">
         <input type="hidden" name="data" value={JSON.stringify(draft)} />
 
@@ -395,14 +425,17 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
               <input
                 ref={fileRef}
                 id="logo"
-                name="logo"
                 type="file"
                 accept="image/*"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  setFileName(file?.name || "");
-                  if (file) setLogoPreview(URL.createObjectURL(file));
+                  if (!file) return;
+                  setFileName(file.name);
+                  void uploadImage("logo", file, "profile", (url) => {
+                    setLogoPreview(url);
+                    setDraft((prev) => ({ ...prev, avatar: url }));
+                  });
                 }}
               />
               <p className="text-xs text-cream/30">
@@ -731,27 +764,21 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                     <input
                       type="file"
                       accept="image/*"
-                      name={
-                        cat.iconImage?.startsWith("upload:")
-                          ? `skill-icon-${cat.iconImage.slice(7)}`
-                          : undefined
-                      }
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        const key = `${Date.now()}-${Math.random()
-                          .toString(36)
-                          .slice(2, 8)}`;
-                        skillLogoRef.current.set(key, {
-                          url: URL.createObjectURL(file),
-                          name: file.name,
-                        });
-                        setDraft((p) => ({
-                          ...p,
-                          skillCategories: listMap(p.skillCategories, ci, {
-                            iconImage: `upload:${key}`,
-                          }),
-                        }));
+                        void uploadImage(
+                          `skill-${ci}`,
+                          file,
+                          "profile-skills",
+                          (url) =>
+                            setDraft((p) => ({
+                              ...p,
+                              skillCategories: listMap(p.skillCategories, ci, {
+                                iconImage: url,
+                              }),
+                            })),
+                        );
                       }}
                       className={`${fieldClass} file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#8DB355]`}
                     />
@@ -759,13 +786,7 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                       <>
                         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border border-cream/10">
                           <Image
-                            src={
-                              cat.iconImage.startsWith("upload:")
-                                ? (skillLogoRef.current.get(
-                                    cat.iconImage.slice(7),
-                                  )?.url ?? "")
-                                : cat.iconImage
-                            }
+                            src={cat.iconImage}
                             alt={`${cat.label} logo`}
                             fill
                             sizes="40px"
@@ -773,9 +794,8 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                           />
                         </div>
                         <span className="min-w-0 truncate text-xs text-cream/50">
-                          {cat.iconImage.startsWith("upload:")
-                            ? skillLogoRef.current.get(cat.iconImage.slice(7))
-                                ?.name
+                          {uploadingKey === `skill-${ci}`
+                            ? "Uploading…"
                             : cat.iconImage.split("/").pop()}
                         </span>
                         <RemoveBtn
@@ -851,30 +871,26 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                         <input
                           type="file"
                           accept="image/*"
-                          name={
-                            item.iconImage?.startsWith("upload:")
-                              ? `skill-tag-icon-${item.iconImage.slice(7)}`
-                              : undefined
-                          }
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
-                            const key = `${Date.now()}-${Math.random()
-                              .toString(36)
-                              .slice(2, 8)}`;
-                            skillLogoRef.current.set(key, {
-                              url: URL.createObjectURL(file),
-                              name: file.name,
-                            });
-                            setDraft((p) => {
-                              const categories = [...p.skillCategories];
-                              const category = { ...categories[ci] };
-                              category.items = listMap(category.items, ii, {
-                                iconImage: `upload:${key}`,
-                              });
-                              categories[ci] = category;
-                              return { ...p, skillCategories: categories };
-                            });
+                            void uploadImage(
+                              `skill-tag-${ci}-${ii}`,
+                              file,
+                              "profile-skills",
+                              (url) =>
+                                setDraft((p) => {
+                                  const categories = [...p.skillCategories];
+                                  const category = { ...categories[ci] };
+                                  category.items = listMap(
+                                    category.items,
+                                    ii,
+                                    { iconImage: url },
+                                  );
+                                  categories[ci] = category;
+                                  return { ...p, skillCategories: categories };
+                                }),
+                            );
                           }}
                           className={`${fieldClass} file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#8DB355]`}
                         />
@@ -882,13 +898,7 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                           <>
                             <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-md border border-cream/10">
                               <Image
-                                src={
-                                  item.iconImage.startsWith("upload:")
-                                    ? (skillLogoRef.current.get(
-                                        item.iconImage.slice(7),
-                                      )?.url ?? "")
-                                    : item.iconImage
-                                }
+                                src={item.iconImage}
                                 alt={`${item.name} logo`}
                                 fill
                                 sizes="32px"
@@ -896,10 +906,8 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                               />
                             </div>
                             <span className="min-w-0 truncate text-xs text-cream/50">
-                              {item.iconImage.startsWith("upload:")
-                                ? skillLogoRef.current.get(
-                                    item.iconImage.slice(7),
-                                  )?.name
+                              {uploadingKey === `skill-tag-${ci}-${ii}`
+                                ? "Uploading…"
                                 : item.iconImage.split("/").pop()}
                             </span>
                             <button
@@ -1011,27 +1019,21 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                   <input
                     type="file"
                     accept="image/*"
-                    name={
-                      tool.iconImage?.startsWith("upload:")
-                        ? `software-icon-${tool.iconImage.slice(7)}`
-                        : undefined
-                    }
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      const key = `${Date.now()}-${Math.random()
-                        .toString(36)
-                        .slice(2, 8)}`;
-                      skillLogoRef.current.set(key, {
-                        url: URL.createObjectURL(file),
-                        name: file.name,
-                      });
-                      setDraft((p) => ({
-                        ...p,
-                        softwareTools: listMap(p.softwareTools, i, {
-                          iconImage: `upload:${key}`,
-                        }),
-                      }));
+                      void uploadImage(
+                        `software-${i}`,
+                        file,
+                        "profile-skills",
+                        (url) =>
+                          setDraft((p) => ({
+                            ...p,
+                            softwareTools: listMap(p.softwareTools, i, {
+                              iconImage: url,
+                            }),
+                          })),
+                      );
                     }}
                     className={`${fieldClass} file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#8DB355]`}
                   />
@@ -1039,13 +1041,7 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                     <>
                       <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-md border border-cream/10">
                         <Image
-                          src={
-                            tool.iconImage.startsWith("upload:")
-                              ? (skillLogoRef.current.get(
-                                  tool.iconImage.slice(7),
-                                )?.url ?? "")
-                              : tool.iconImage
-                          }
+                          src={tool.iconImage}
                           alt={`${tool.name} logo`}
                           fill
                           sizes="32px"
@@ -1053,9 +1049,8 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                         />
                       </div>
                       <span className="min-w-0 truncate text-xs text-cream/50">
-                        {tool.iconImage.startsWith("upload:")
-                          ? skillLogoRef.current.get(tool.iconImage.slice(7))
-                              ?.name
+                        {uploadingKey === `software-${i}`
+                          ? "Uploading…"
                           : tool.iconImage.split("/").pop()}
                       </span>
                       <button

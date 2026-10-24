@@ -1,19 +1,15 @@
 "use client";
 
-import { useActionState, useState, useRef } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  ArrowLeft,
-  Check,
-  ImagePlus,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, ImagePlus, Loader2 } from "lucide-react";
 import {
   addGalleryImage,
   editGalleryImage,
   type PictureFormState,
 } from "@/app/dashboard/pictures/actions";
+import DirectFileInput from "@/components/dashboard/DirectFileInput";
 import type { GalleryFolder, GalleryImage } from "@/lib/gallery";
 
 const fieldClass =
@@ -36,9 +32,7 @@ export default function ImageForm({
     { error: null },
   );
 
-  const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState(image?.imageUrl ?? "");
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const activeFolderSlug =
     folders.find((f) => f.id === (image?.folderId ?? folders[0]?.id))?.slug ??
@@ -71,7 +65,6 @@ export default function ImageForm({
 
       <form action={formAction} className="mt-8 space-y-6">
         {isEdit && <input type="hidden" name="imageId" value={image?.id} />}
-        <input type="hidden" name="folderSlug" value={activeFolderSlug} />
 
         <div>
           <label className={labelClass} htmlFor="folderId">
@@ -137,47 +130,15 @@ export default function ImageForm({
             </div>
           )}
 
-          <label
-            htmlFor="image"
-            className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-cream/15 px-4 py-3 text-sm text-cream/50 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
-          >
-            {fileName ? (
-              <>
-                <Check size={16} className="text-[#8DB355]" />
-                <span className="truncate text-cream/70">{fileName}</span>
-              </>
-            ) : (
-              <>
-                <ImagePlus size={16} />
-                Choose image file
-              </>
-            )}
-          </label>
-          <input
-            ref={fileRef}
-            id="image"
-            name="image"
-            type="file"
+          <DirectFileInput
+            urlName="imageUrl"
             accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              setFileName(file?.name || "");
-              if (file) {
-                setPreviewUrl(URL.createObjectURL(file));
-              }
-            }}
-          />
-
-          <p className="mt-3 text-xs text-cream/30">
-            Or paste a URL below (used when no file is chosen):
-          </p>
-          <input
-            name="imageUrl"
-            defaultValue={image?.imageUrl ?? ""}
-            placeholder="https://..."
-            className={`${fieldClass} mt-2`}
-            onChange={(e) => setPreviewUrl(e.target.value)}
+            kind="image"
+            folder={activeFolderSlug}
+            existingUrl={image?.imageUrl ?? ""}
+            label="Choose image file"
+            icon={<ImagePlus size={16} />}
+            onUrlChange={setPreviewUrl}
           />
         </div>
 

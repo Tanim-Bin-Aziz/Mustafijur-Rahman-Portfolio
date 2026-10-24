@@ -6,6 +6,7 @@ import { getCvDocuments, CV_MIGRATION, type CvDocument } from "@/lib/cv";
 import { saveAboutCard } from "./actions";
 import { removeCvDocument } from "./cv/actions";
 import ConfirmSubmit from "@/components/dashboard/ConfirmSubmit";
+import DirectFileInput from "@/components/dashboard/DirectFileInput";
 
 export default async function AboutCardsPage({
   searchParams,
@@ -216,18 +217,16 @@ function AboutCardForm({
         </div>
 
         <div>
-          <label
-            htmlFor={`cover-${item.id}`}
-            className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-cream/50"
-          >
+          <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-cream/50">
             Cover Image
-          </label>
-          <input
-            id={`cover-${item.id}`}
-            name="cover"
-            type="file"
+          </span>
+          <DirectFileInput
+            urlName="coverUrl"
             accept="image/*"
-            className="w-full rounded-lg border border-white/10 bg-bg px-3.5 py-2 text-sm text-cream/70 file:mr-3 file:rounded-full file:border-0 file:bg-[#8DB355]/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8DB355]"
+            kind="cover"
+            folder="about"
+            label="Choose cover image"
+            icon={<Plus size={16} />}
           />
           <p className="mt-1.5 text-xs text-cream/35">
             Leave empty to keep the current image.

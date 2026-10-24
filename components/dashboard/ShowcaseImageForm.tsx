@@ -9,6 +9,8 @@ import {
   editShowcaseImage,
   type ShowcaseFormState,
 } from "@/app/dashboard/showcase/actions";
+import DirectFileInput from "@/components/dashboard/DirectFileInput";
+import { uploadFileDirect } from "@/lib/upload-client";
 import type { ShowcaseImage } from "@/lib/showcase";
 
 const fieldClass =
@@ -29,15 +31,15 @@ export default function ShowcaseImageForm({
     FormData
   >(isEdit ? editShowcaseImage : addShowcaseImage, { error: null });
 
-  const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState(image?.imageUrl ?? "");
-  const fileRef = useRef<HTMLInputElement>(null);
 
-  const [thumbFileName, setThumbFileName] = useState("");
+  const [thumbUrl, setThumbUrl] = useState(image?.thumbnailUrl ?? "");
   const [thumbPreviewUrl, setThumbPreviewUrl] = useState(
     image?.thumbnailUrl ?? "",
   );
-  const thumbFileRef = useRef<HTMLInputElement>(null);
+  const [thumbUploading, setThumbUploading] = useState(false);
+  const [thumbError, setThumbError] = useState<string | null>(null);
+  const thumbUrlRef = useRef<HTMLInputElement>(null);
 
   const [offsetX, setOffsetX] = useState(image?.cardOffsetX ?? 50);
   const [offsetY, setOffsetY] = useState(image?.cardOffsetY ?? 50);
@@ -99,16 +101,45 @@ export default function ShowcaseImageForm({
     }
   };
 
+  const applyThumbUrl = (url: string) => {
+    setThumbUrl(url);
+    setThumbPreviewUrl(url);
+    if (thumbUrlRef.current) thumbUrlRef.current.value = url;
+  };
+
+  const handleThumbFile = async (file: File) => {
+    setThumbUploading(true);
+    setThumbError(null);
+
+    try {
+      applyThumbUrl(await uploadFileDirect(file, "image", "showcase"));
+    } catch (error) {
+      setThumbError(error instanceof Error ? error.message : "Upload failed.");
+    } finally {
+      setThumbUploading(false);
+    }
+  };
+
   const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     if (submittingRef.current) return;
-    if (!previewUrl) return;
     e.preventDefault();
-    const file = await generateCropFile();
-    if (file && thumbFileRef.current) {
-      const dt = new DataTransfer();
-      dt.items.add(file);
-      thumbFileRef.current.files = dt.files;
+
+    // No explicit thumbnail? Derive one from the card crop so the ring card
+    // still shows the chosen area. An uploaded thumbnail always wins.
+    if (previewUrl && !thumbUrl) {
+      const file = await generateCropFile();
+      if (file) {
+        try {
+          applyThumbUrl(await uploadFileDirect(file, "image", "showcase"));
+        } catch (error) {
+          setThumbError(
+            error instanceof Error ? error.message : "Upload failed.",
+          );
+          return;
+        }
+      }
     }
+
     submittingRef.current = true;
     formRef.current?.requestSubmit();
   };
@@ -256,47 +287,15 @@ export default function ShowcaseImageForm({
             </div>
           )}
 
-          <label
-            htmlFor="image"
-            className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-cream/15 px-4 py-3 text-sm text-cream/50 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
-          >
-            {fileName ? (
-              <>
-                <Check size={16} className="text-[#8DB355]" />
-                <span className="truncate text-cream/70">{fileName}</span>
-              </>
-            ) : (
-              <>
-                <ImagePlus size={16} />
-                Choose image file
-              </>
-            )}
-          </label>
-          <input
-            ref={fileRef}
-            id="image"
-            name="image"
-            type="file"
+          <DirectFileInput
+            urlName="imageUrl"
             accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              setFileName(file?.name || "");
-              if (file) {
-                setPreviewUrl(URL.createObjectURL(file));
-              }
-            }}
-          />
-
-          <p className="mt-3 text-xs text-cream/30">
-            Or paste a URL below (used when no file is chosen):
-          </p>
-          <input
-            name="imageUrl"
-            defaultValue={image?.imageUrl ?? ""}
-            placeholder="https://..."
-            className={`${fieldClass} mt-2`}
-            onChange={(e) => setPreviewUrl(e.target.value)}
+            kind="image"
+            folder="showcase"
+            existingUrl={image?.imageUrl ?? ""}
+            label="Choose image file"
+            icon={<ImagePlus size={16} />}
+            onUrlChange={setPreviewUrl}
           />
         </div>
 
@@ -332,10 +331,15 @@ export default function ShowcaseImageForm({
             htmlFor="thumbnail"
             className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-cream/15 px-4 py-3 text-sm text-cream/50 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
           >
-            {thumbFileName ? (
+            {thumbUploading ? (
+              <>
+                <Loader2 size={16} className="animate-spin text-[#8DB355]" />
+                <span className="truncate text-cream/70">Uploading…</span>
+              </>
+            ) : thumbUrl ? (
               <>
                 <Check size={16} className="text-[#8DB355]" />
-                <span className="truncate text-cream/70">{thumbFileName}</span>
+                <span className="truncate text-cream/70">Thumbnail ready</span>
               </>
             ) : (
               <>
@@ -345,30 +349,35 @@ export default function ShowcaseImageForm({
             )}
           </label>
           <input
-            ref={thumbFileRef}
             id="thumbnail"
-            name="thumbnail"
             type="file"
             accept="image/*"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              setThumbFileName(file?.name || "");
-              if (file) {
-                setThumbPreviewUrl(URL.createObjectURL(file));
-              }
+              if (file) void handleThumbFile(file);
             }}
           />
+
+          {thumbError && (
+            <p className="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+              {thumbError}
+            </p>
+          )}
 
           <p className="mt-3 text-xs text-cream/30">
             Or paste a URL below (used when no file is chosen):
           </p>
           <input
+            ref={thumbUrlRef}
             name="thumbnailUrl"
-            defaultValue={image?.thumbnailUrl ?? ""}
+            value={thumbUrl}
             placeholder="https://..."
             className={`${fieldClass} mt-2`}
-            onChange={(e) => setThumbPreviewUrl(e.target.value)}
+            onChange={(e) => {
+              setThumbUrl(e.target.value);
+              setThumbPreviewUrl(e.target.value);
+            }}
           />
         </div>
 

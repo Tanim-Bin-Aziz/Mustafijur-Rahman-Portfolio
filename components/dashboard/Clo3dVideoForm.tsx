@@ -1,13 +1,14 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Film, FileUp, Loader2 } from "lucide-react";
+import { ArrowLeft, FileUp, Film, Loader2 } from "lucide-react";
 import {
   addClo3dVideo,
   editClo3dVideo,
   type Clo3dFormState,
 } from "@/app/dashboard/videos/clo3d/actions";
+import DirectFileInput from "@/components/dashboard/DirectFileInput";
 import type { Clo3dVideo, Clo3dFolder } from "@/lib/clo3d";
 
 const fieldClass =
@@ -16,7 +17,8 @@ const fieldClass =
 const labelClass =
   "mb-1.5 block font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45";
 
-// Must stay under the Server Action body size limit in next.config.ts
+// Client-side guard: uploads go straight to R2, so this only keeps accidental
+// multi-GB picks from tying up the browser tab.
 const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
 const MAX_VIDEO_LABEL = "500 MB";
 
@@ -33,32 +35,6 @@ export default function Clo3dVideoForm({
     Clo3dFormState,
     FormData
   >(isEdit ? editClo3dVideo : addClo3dVideo, { error: null });
-
-  const [fileName, setFileName] = useState("");
-  const [fileError, setFileError] = useState<string | null>(null);
-
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const input = event.target;
-    const file = input.files?.[0];
-
-    if (!file) {
-      setFileName("");
-      setFileError(null);
-      return;
-    }
-
-    if (file.size > MAX_VIDEO_BYTES) {
-      input.value = "";
-      setFileName("");
-      setFileError(
-        `That file is ${(file.size / 1024 / 1024).toFixed(0)} MB. Maximum is ${MAX_VIDEO_LABEL}.`,
-      );
-      return;
-    }
-
-    setFileError(null);
-    setFileName(file.name);
-  }
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -147,7 +123,7 @@ export default function Clo3dVideoForm({
         <div>
           <span className={labelClass}>Video file (mp4)</span>
 
-          {isEdit && video?.videoUrl && !fileName && (
+          {isEdit && video?.videoUrl && (
             <div className="mb-4 flex items-center gap-3 rounded-lg border border-cream/10 bg-black/20 px-4 py-3">
               <Film size={20} className="shrink-0 text-[#8DB355]" />
               <span className="truncate text-xs text-cream/40">
@@ -156,47 +132,23 @@ export default function Clo3dVideoForm({
             </div>
           )}
 
-          <label
-            htmlFor="video"
-            className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-cream/15 px-4 py-3 text-sm text-cream/50 transition-colors hover:border-[#8DB355] hover:text-[#8DB355]"
-          >
-            {fileName ? (
-              <>
-                <Check size={16} className="text-[#8DB355]" />
-                <span className="truncate text-cream/70">{fileName}</span>
-              </>
-            ) : (
-              <>
-                <FileUp size={16} />
-                Choose video file
-              </>
-            )}
-          </label>
-          <input
-            id="video"
-            name="video"
-            type="file"
+          <DirectFileInput
+            urlName="videoUrl"
             accept="video/*"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          {fileError && (
-            <p className="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
-              {fileError}
-            </p>
-          )}
-          <p className="mt-2 text-xs text-cream/30">
-            Maximum {MAX_VIDEO_LABEL}. Larger files can fail to upload.
-          </p>
-
-          <p className="mt-3 text-xs text-cream/30">
-            Or paste a URL below (used when no file is chosen):
-          </p>
-          <input
-            name="videoUrl"
-            defaultValue={video?.videoUrl ?? ""}
+            kind="video"
+            folder="clo3d"
+            existingUrl={video?.videoUrl ?? ""}
+            label="Choose video file"
+            icon={<FileUp size={16} />}
+            maxBytes={MAX_VIDEO_BYTES}
+            maxLabel={MAX_VIDEO_LABEL}
             placeholder="https://.../video.mp4"
-            className={`${fieldClass} mt-2`}
+            hint={
+              <p className="mt-2 text-xs text-cream/30">
+                Maximum {MAX_VIDEO_LABEL}. The file goes straight to R2, so large
+                renders no longer hit Vercel&apos;s request limit.
+              </p>
+            }
           />
         </div>
 

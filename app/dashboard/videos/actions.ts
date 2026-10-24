@@ -3,33 +3,28 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isUploadedFile, uploadProjectCover, uploadProjectVideo } from "@/lib/storage";
 import {
   createShowcaseVideoCard,
   updateShowcaseVideoCard,
   deleteShowcaseVideoCard,
-  friendlyShowcaseVideosError,
 } from "@/lib/showcase";
 import {
   updatePageVideo,
   createAdditionalWorkVideo,
   updateAdditionalWorkVideo,
   deleteAdditionalWorkVideo,
-  friendlyVideoError,
 } from "@/lib/video";
 
 function errorUrl(tab: string, message: string) {
   return `/dashboard/videos?tab=${tab}&error=${encodeURIComponent(message)}`;
 }
 
-async function resolveUploadedVideo(formData: FormData, folder: string) {
-  const file = formData.get("video");
+function readVideoUrl(formData: FormData, fallbackKey?: string) {
+  const direct = String(formData.get("videoUrl") || "").trim();
 
-  if (isUploadedFile(file) && file.size > 0) {
-    return await uploadProjectVideo(file, folder);
-  }
+  if (direct) return direct;
 
-  return String(formData.get("videoUrl") || "").trim();
+  return fallbackKey ? String(formData.get(fallbackKey) || "").trim() : "";
 }
 
 /* ---------------------------------------------------------
@@ -44,20 +39,8 @@ export async function addShowcaseVideoCard(formData: FormData) {
   if (!user) redirect("/login");
 
   const label = String(formData.get("label") || "").trim();
+  const videoUrl = readVideoUrl(formData);
 
-  let videoUrl = "";
-  let uploadError: string | null = null;
-
-  try {
-    videoUrl = await resolveUploadedVideo(formData, "showcase");
-  } catch (error) {
-    uploadError =
-      error instanceof Error
-        ? friendlyShowcaseVideosError(error.message)
-        : "Upload failed.";
-  }
-
-  if (uploadError) redirect(errorUrl("showcase", uploadError));
   if (!videoUrl)
     redirect(errorUrl("showcase", "Upload a video or provide a URL."));
 
@@ -84,20 +67,8 @@ export async function updateShowcaseVideoCardAction(formData: FormData) {
 
   if (!id) redirect(errorUrl("showcase", "Missing showcase video id."));
 
-  let videoUrl = String(formData.get("currentVideoUrl") || "").trim();
-  let uploadError: string | null = null;
+  const videoUrl = readVideoUrl(formData, "currentVideoUrl");
 
-  try {
-    const uploaded = await resolveUploadedVideo(formData, "showcase");
-    if (uploaded) videoUrl = uploaded;
-  } catch (error) {
-    uploadError =
-      error instanceof Error
-        ? friendlyShowcaseVideosError(error.message)
-        : "Upload failed.";
-  }
-
-  if (uploadError) redirect(errorUrl("showcase", uploadError));
   if (!videoUrl)
     redirect(errorUrl("showcase", "Upload a video or provide a URL."));
 
@@ -148,26 +119,9 @@ export async function savePageVideo(formData: FormData) {
   if (!slug) redirect(errorUrl("final-collection", "Missing video id."));
   if (!title) redirect(errorUrl(slug, "Title is required."));
 
-  let videoUrl = String(formData.get("currentVideoUrl") || "").trim();
-  let cover: string | undefined;
-  let uploadError: string | null = null;
+  const videoUrl = readVideoUrl(formData, "currentVideoUrl");
+  const cover = String(formData.get("coverUrl") || "").trim() || undefined;
 
-  try {
-    const uploaded = await resolveUploadedVideo(formData, "page-videos");
-    if (uploaded) videoUrl = uploaded;
-
-    const coverFile = formData.get("cover");
-    if (isUploadedFile(coverFile) && coverFile.size > 0) {
-      cover = await uploadProjectCover(coverFile, "page-videos");
-    }
-  } catch (error) {
-    uploadError =
-      error instanceof Error
-        ? friendlyVideoError(error.message)
-        : "Upload failed.";
-  }
-
-  if (uploadError) redirect(errorUrl(slug, uploadError));
   if (!videoUrl) redirect(errorUrl(slug, "Upload a video or provide a URL."));
 
   const { ok, error } = await updatePageVideo(slug, {
@@ -203,19 +157,8 @@ export async function addAdditionalWorkVideo(formData: FormData) {
 
   if (!title) redirect(errorUrl("additional-work", "Title is required."));
 
-  let videoUrl = "";
-  let uploadError: string | null = null;
+  const videoUrl = readVideoUrl(formData);
 
-  try {
-    videoUrl = await resolveUploadedVideo(formData, "additional-work");
-  } catch (error) {
-    uploadError =
-      error instanceof Error
-        ? friendlyVideoError(error.message)
-        : "Upload failed.";
-  }
-
-  if (uploadError) redirect(errorUrl("additional-work", uploadError));
   if (!videoUrl)
     redirect(errorUrl("additional-work", "Upload a video or provide a URL."));
 
@@ -247,20 +190,8 @@ export async function updateAdditionalWorkVideoAction(formData: FormData) {
   if (!id) redirect(errorUrl("additional-work", "Missing video id."));
   if (!title) redirect(errorUrl("additional-work", "Title is required."));
 
-  let videoUrl = String(formData.get("currentVideoUrl") || "").trim();
-  let uploadError: string | null = null;
+  const videoUrl = readVideoUrl(formData, "currentVideoUrl");
 
-  try {
-    const uploaded = await resolveUploadedVideo(formData, "additional-work");
-    if (uploaded) videoUrl = uploaded;
-  } catch (error) {
-    uploadError =
-      error instanceof Error
-        ? friendlyVideoError(error.message)
-        : "Upload failed.";
-  }
-
-  if (uploadError) redirect(errorUrl("additional-work", uploadError));
   if (!videoUrl)
     redirect(errorUrl("additional-work", "Upload a video or provide a URL."));
 
