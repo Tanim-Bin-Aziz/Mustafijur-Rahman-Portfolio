@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Menu, X, User, LogOut, ChevronDown, ChevronRight } from "lucide-react";
 import { FaFacebook, FaLinkedin, FaWhatsapp } from "react-icons/fa6";
@@ -58,6 +59,9 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
     null,
   );
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [avatar, setAvatar] = useState<string | null>(
+    "https://pub-d07de81c35f24700812a2825371e062b.r2.dev/images/profile/1792851164869-vgsg.png",
+  );
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -70,6 +74,15 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session);
     });
+    supabase
+      .from("profile_settings")
+      .select("data")
+      .eq("key", "main")
+      .maybeSingle()
+      .then(({ data }) => {
+        const a = (data?.data as { avatar?: string } | null)?.avatar;
+        if (a) setAvatar(a);
+      });
     return () => subscription.unsubscribe();
   }, []);
 
@@ -133,14 +146,24 @@ export default function Nav({ ready = true }: { ready?: boolean }) {
     >
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
         {/* Logo */}
-        <motion.a variants={itemVariants} href="#" className="leading-tight">
-          <p className="text-[11px] uppercase tracking-[0.35em] text-[#8DB355]">
-            Creative Director
-          </p>
+        <motion.a variants={itemVariants} href="#" className="flex items-center gap-3 leading-tight">
+          {avatar && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatar}
+              alt="Profile"
+              className="h-10 w-10 flex-shrink-0 rounded-lg object-cover"
+            />
+          )}
+          <span className="flex flex-col">
+            <p className="text-[11px] uppercase tracking-[0.35em] text-[#8DB355]">
+              Fashion Designer
+            </p>
 
-          <h2 className="text-xl font-semibold text-cream">
-            Mustafijur <em className=" text-[#8DB355]">Rahman</em>
-          </h2>
+            <h2 className="text-xl font-semibold text-cream">
+              Mustafijur <em className=" text-[#8DB355]">Rahman</em>
+            </h2>
+          </span>
         </motion.a>
 
         {/* Desktop Nav */}

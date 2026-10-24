@@ -42,6 +42,7 @@ import ConfirmSubmit from "@/components/dashboard/ConfirmSubmit";
 import Clo3dFolderAdd from "@/components/dashboard/Clo3dFolderAdd";
 import DirectFileInput from "@/components/dashboard/DirectFileInput";
 import UploadSubmit, { UploadProgress } from "@/components/dashboard/UploadSubmit";
+import ShowcaseReorder from "@/components/dashboard/ShowcaseReorder";
 
 const TABS = [
   { id: "clo3d", label: "CLO 3D", icon: Clapperboard },
@@ -328,14 +329,18 @@ function Clo3dTab({
    each card plays a looping background video)
 --------------------------------------------------------- */
 function ShowcaseTab({ cards }: { cards: ShowcaseVideoCard[] }) {
+  const atLimit = cards.length >= 7;
   return (
     <div>
       <p className="text-sm text-cream/45">
         The home page Showcase section — each card plays a looping background
-        video.
+        video. Maximum 7 videos.
       </p>
 
+      {cards.length > 1 && <ShowcaseReorder cards={cards} />}
+
       {/* Add form */}
+      {!atLimit && (
       <form
         action={addShowcaseVideoCard}
         className="mt-6 rounded-xl border border-cream/10 bg-card p-5"
@@ -378,6 +383,7 @@ function ShowcaseTab({ cards }: { cards: ShowcaseVideoCard[] }) {
           className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#8DB355] px-5 py-2 text-sm font-semibold text-bg transition-colors hover:bg-[#9cc163]"
         />
       </form>
+      )}
 
       {/* Existing cards */}
       {cards.length === 0 ? (

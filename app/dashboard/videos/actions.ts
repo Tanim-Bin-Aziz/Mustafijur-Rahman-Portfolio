@@ -7,6 +7,8 @@ import {
   createShowcaseVideoCard,
   updateShowcaseVideoCard,
   deleteShowcaseVideoCard,
+  getShowcaseVideoCards,
+  saveShowcaseVideoCardOrder,
 } from "@/lib/showcase";
 import {
   updatePageVideo,
@@ -44,6 +46,10 @@ export async function addShowcaseVideoCard(formData: FormData) {
   if (!videoUrl)
     redirect(errorUrl("showcase", "Upload a video or provide a URL."));
 
+  const existing = await getShowcaseVideoCards();
+  if (existing.length >= 7)
+    redirect(errorUrl("showcase", "Maximum 7 showcase videos allowed."));
+
   const { id, error } = await createShowcaseVideoCard({ label, videoUrl });
 
   if (!id)
@@ -75,6 +81,30 @@ export async function updateShowcaseVideoCardAction(formData: FormData) {
   const { error } = await updateShowcaseVideoCard(id, { label, videoUrl });
 
   if (error) redirect(errorUrl("showcase", error));
+
+  revalidatePath("/");
+  revalidatePath("/dashboard/videos");
+  redirect("/dashboard/videos?tab=showcase&saved=1");
+}
+
+export async function reorderShowcaseVideoCards(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const ids = formData
+    .getAll("ids")
+    .map((v) => String(v).trim())
+    .filter(Boolean);
+
+  if (ids.length === 0)
+    redirect(errorUrl("showcase", "Nothing to reorder."));
+
+  const { ok, error } = await saveShowcaseVideoCardOrder(ids);
+  if (!ok) redirect(errorUrl("showcase", error ?? "Could not reorder."));
 
   revalidatePath("/");
   revalidatePath("/dashboard/videos");

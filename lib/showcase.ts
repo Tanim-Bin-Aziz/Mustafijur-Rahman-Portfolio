@@ -354,6 +354,25 @@ export async function updateShowcaseVideoCard(
   return { ok: true, error: null };
 }
 
+export async function saveShowcaseVideoCardOrder(
+  ids: string[],
+): Promise<{ ok: boolean; error: string | null }> {
+  const supabase = await createClient();
+
+  for (let i = 0; i < ids.length; i++) {
+    const { error } = await supabase
+      .from("showcase_videos")
+      .update({ sort_order: i + 1 })
+      .eq("id", ids[i]);
+    if (error) {
+      console.error("saveShowcaseVideoCardOrder failed:", error.message);
+      return { ok: false, error: friendlyShowcaseVideosError(error.message) };
+    }
+  }
+
+  return { ok: true, error: null };
+}
+
 export async function deleteShowcaseVideoCard(id: string): Promise<boolean> {
   const supabase = await createClient();
 

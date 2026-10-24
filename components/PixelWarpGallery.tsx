@@ -20,9 +20,11 @@ const DEFAULT_ITEMS: GalleryItem[] = [
 
 const CARD_LAYOUT = [
   { height: 560, marginBottom: 0 },
-  { height: 630, marginBottom: 70 },
-  { height: 580, marginBottom: 20 },
-  { height: 650, marginBottom: 90 },
+  { height: 620, marginBottom: 70 },
+  { height: 560, marginBottom: 0 },
+  { height: 620, marginBottom: 70 },
+  { height: 560, marginBottom: 0 },
+  { height: 620, marginBottom: 70 },
   { height: 560, marginBottom: 0 },
 ];
 
@@ -33,7 +35,7 @@ function WarpCard({ item, index }: { item: GalleryItem; index: number }) {
 
   return (
     <div
-      className="relative w-[210px] overflow-hidden rounded-3xl border border-[#2a2f3a] bg-[##09090a] cursor-pointer max-[900px]:w-[150px] max-[900px]:!h-[400px] max-[900px]:!mb-0"
+      className="relative w-[210px] flex-shrink-0 overflow-hidden rounded-3xl border border-[#2a2f3a] bg-[##09090a] cursor-pointer max-[900px]:w-[150px] max-[900px]:!h-[400px] max-[900px]:!mb-0"
       style={{
         height: layout.height,
         marginBottom: layout.marginBottom,
@@ -72,7 +74,7 @@ export default function PixelWarpGallery({
         </p>
       </div>
 
-      <div className="mx-auto flex max-w-[1300px] flex-wrap items-end justify-center gap-5">
+      <div className="mx-auto flex max-w-full flex-nowrap items-end justify-center gap-5 overflow-x-auto px-2 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {items.map((item, idx) => (
           <WarpCard key={item.label ?? idx} item={item} index={idx} />
         ))}
