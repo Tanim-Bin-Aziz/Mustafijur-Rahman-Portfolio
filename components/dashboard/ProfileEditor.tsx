@@ -673,7 +673,12 @@ export default function ProfileEditor({ profile }: { profile: ProfileData }) {
                   value={paragraph}
                   rows={4}
                   onChange={(e) =>
-                    set("about", listMap(draft.about, i, e.target.value))
+                    set(
+                      "about",
+                      draft.about.map((p, idx) =>
+                        idx === i ? e.target.value : p,
+                      ),
+                    )
                   }
                   className={`${fieldClass} pr-10`}
                 />

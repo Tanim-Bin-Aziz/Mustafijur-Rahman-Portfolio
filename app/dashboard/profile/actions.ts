@@ -31,6 +31,21 @@ export async function updateProfile(
     if (!Array.isArray(draft.softwareTools)) {
       draft.softwareTools = structuredClone(DEFAULT_PROFILE.softwareTools);
     }
+    if (!Array.isArray(draft.about)) {
+      draft.about = structuredClone(DEFAULT_PROFILE.about);
+    } else {
+      draft.about = draft.about.map((p) =>
+        typeof p === "string" ? p : String(p ?? ""),
+      );
+    }
+    if (Array.isArray(draft.skillCategories)) {
+      draft.skillCategories = draft.skillCategories.map((cat) => ({
+        ...cat,
+        color: /^#?[0-9a-f]{6}$/i.test(String(cat?.color ?? "").trim())
+          ? String(cat.color).trim()
+          : cat.color,
+      }));
+    }
   } catch {
     return { error: "Invalid profile data.", saved: false };
   }

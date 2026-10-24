@@ -260,7 +260,7 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
           <SectionCard theme={theme}>
             <SectionLabel theme={theme}>About Me</SectionLabel>
             {profile.about
-              .filter((paragraph) => paragraph.trim())
+              .filter((paragraph) => String(paragraph).trim())
               .map((paragraph, i) => (
               <p
                 key={i}
@@ -277,6 +277,7 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
         return (
           <SectionCard theme={theme}>
             <SectionLabel theme={theme}>Professional Experience</SectionLabel>
+            <div className="space-y-4">
             {profile.experiences.map((exp, i) => (
               <div key={i} className="flex gap-4">
                 <div
@@ -307,28 +308,30 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
                         >
                           · {exp.dept}
                         </span>
-                        <span
-                          className="text-xs px-2 py-0.5 rounded-full font-medium"
-                          style={{
-                            backgroundColor: "#ec489912",
-                            color: "#ec4899",
-                            border: "1px solid #ec489933",
-                          }}
-                        >
-                          {exp.type}
-                        </span>
+                        {exp.type?.trim() && (
+                          <span
+                            className="text-xs px-2 py-0.5 rounded-full font-medium"
+                            style={{
+                              backgroundColor: "#ec489912",
+                              color: "#ec4899",
+                              border: "1px solid #ec489933",
+                            }}
+                          >
+                            {exp.type}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <span
                       className="text-xs flex-shrink-0"
                       style={{ color: theme.mutedForeground }}
                     >
-                      📅 {exp.period}
+                      {exp.period}
                     </span>
                   </div>
                   <ul className="mt-2 space-y-1">
                     {exp.bullets
-                      .filter((b) => b.trim())
+                      .filter((b) => String(b).trim())
                       .map((b, j) => (
                       <li
                         key={j}
@@ -348,6 +351,7 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
                 </div>
               </div>
             ))}
+           </div>
           </SectionCard>
         );
 
@@ -381,7 +385,7 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
             ))}
           </SectionCard>
         );
-
+ 
       case "education":
         return (
           <SectionCard theme={theme}>
@@ -507,7 +511,7 @@ export default function ProfileView({ profile }: { profile: ProfileData }) {
                     {r.email}
                   </a>
                   {r.phones
-                    .filter((p) => p.trim())
+                    .filter((p) => String(p).trim())
                     .map((p) => (
                     <p
                       key={p}

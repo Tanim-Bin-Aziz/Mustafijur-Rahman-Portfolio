@@ -20,6 +20,35 @@ export function friendlyProfileError(message: string): string {
   return message;
 }
 
+function toParagraph(value: unknown): string | null {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const keys = Object.keys(value as Record<string, unknown>)
+      .filter((k) => /^\d+$/.test(k))
+      .sort((a, b) => Number(a) - Number(b));
+    if (keys.length) {
+      return keys
+        .map((k) => (value as Record<string, unknown>)[k])
+        .map((c) => (typeof c === "string" ? c : String(c ?? "")))
+        .join("");
+    }
+  }
+  return null;
+}
+
+function normalizeStringArray(value: unknown, fallback: string[]): string[] {
+  if (typeof value === "string") return value.trim() ? [value] : [];
+  if (!Array.isArray(value)) return structuredClone(fallback);
+  const result = value
+    .map(toParagraph)
+    .filter((p): p is string => p !== null);
+  return result.length ? result : structuredClone(fallback);
+}
+
+function normalizeAbout(value: unknown): string[] {
+  return normalizeStringArray(value, DEFAULT_PROFILE.about);
+}
+
 function mergeProfile(data: Partial<ProfileData> | null): ProfileData {
   if (!data || typeof data !== "object") {
     return structuredClone(DEFAULT_PROFILE);
@@ -31,16 +60,81 @@ function mergeProfile(data: Partial<ProfileData> | null): ProfileData {
       )
     : [];
 
+  function isTooDark(hex: string): boolean {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex?.trim() ?? "");
+    if (!m) return true;
+    const n = parseInt(m[1], 16);
+    const r = (n >> 16) & 255;
+    const g = (n >> 8) & 255;
+    const b = n & 255;
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return lum < 0.5;
+  }
+
+  const defaultColorFor = (label: string) =>
+    DEFAULT_PROFILE.skillCategories.find((c) => c.label === label)?.color ??
+    "#f59e0b";
+
+  const skillCategories = Array.isArray(data.skillCategories)
+    ? data.skillCategories.map((cat) => ({
+        ...cat,
+        color: isTooDark(String(cat?.color ?? ""))
+          ? defaultColorFor(String(cat?.label ?? ""))
+          : String(cat.color),
+        items: Array.isArray(cat?.items)
+          ? cat.items.map((it) => ({
+              ...it,
+              name: String(it?.name ?? "").trim(),
+            }))
+          : [],
+      }))
+    : DEFAULT_PROFILE.skillCategories;
+
+  const experiences = Array.isArray(data.experiences)
+    ? data.experiences.map((exp) => ({
+        ...exp,
+        bullets: normalizeStringArray(
+          (exp as { bullets?: unknown })?.bullets,
+          DEFAULT_PROFILE.experiences[0]?.bullets ?? [],
+        ),
+      }))
+    : DEFAULT_PROFILE.experiences;
+
+  const references = Array.isArray(data.references)
+    ? data.references.map((ref) => ({
+        ...ref,
+        phones: normalizeStringArray(
+          (ref as { phones?: unknown })?.phones,
+          DEFAULT_PROFILE.references[0]?.phones ?? [],
+        ),
+      }))
+    : DEFAULT_PROFILE.references;
+
+  const softSkills = {
+    ...DEFAULT_PROFILE.softSkills,
+    ...(data.softSkills ?? {}),
+    strengths: normalizeStringArray(
+      (data.softSkills as { strengths?: unknown } | undefined)?.strengths,
+      DEFAULT_PROFILE.softSkills.strengths,
+    ),
+    passions: normalizeStringArray(
+      (data.softSkills as { passions?: unknown } | undefined)?.passions,
+      DEFAULT_PROFILE.softSkills.passions,
+    ),
+  };
+
   return {
     ...structuredClone(DEFAULT_PROFILE),
     ...data,
-    softSkills: {
-      ...DEFAULT_PROFILE.softSkills,
-      ...(data.softSkills ?? {}),
-    },
+    about: normalizeAbout(data.about),
+    skillCategories,
+    hobbies: normalizeStringArray(data.hobbies, DEFAULT_PROFILE.hobbies),
+    softSkills,
     softwareTools: Array.isArray(data.softwareTools)
       ? data.softwareTools
       : DEFAULT_PROFILE.softwareTools,
+    experiences,
+    references,
     sectionOrder: [
       ...savedOrder,
       ...DEFAULT_PROFILE.sectionOrder.filter((key) => !savedOrder.includes(key)),
