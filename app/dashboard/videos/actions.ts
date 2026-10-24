@@ -12,6 +12,7 @@ import {
 } from "@/lib/showcase";
 import {
   updatePageVideo,
+  saveHomePageVideo,
   createAdditionalWorkVideo,
   updateAdditionalWorkVideo,
   deleteAdditionalWorkVideo,
@@ -127,6 +128,32 @@ export async function removeShowcaseVideoCard(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/dashboard/videos");
   redirect("/dashboard/videos?tab=showcase&saved=1");
+}
+
+/* ---------------------------------------------------------
+   Home page hero video
+--------------------------------------------------------- */
+export async function saveHomePageVideoAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const videoUrl = readVideoUrl(formData, "currentVideoUrl");
+
+  if (!videoUrl)
+    redirect(errorUrl("home-page-video", "Upload a video or provide a URL."));
+
+  const { ok, error } = await saveHomePageVideo(videoUrl);
+
+  if (!ok)
+    redirect(errorUrl("home-page-video", error ?? "Could not save the video."));
+
+  revalidatePath("/");
+  revalidatePath("/dashboard/videos");
+  redirect("/dashboard/videos?tab=home-page-video&saved=1");
 }
 
 /* ---------------------------------------------------------

@@ -5,6 +5,7 @@ import {
   Clapperboard,
   Film,
   Folder,
+  Home,
   Images,
   Pencil,
   Plus,
@@ -24,6 +25,7 @@ import {
 import {
   getPageVideos,
   getAdditionalWorkVideos,
+  getHomePageVideoUrl,
   VIDEO_MIGRATION,
   type PageVideo,
   type AdditionalWorkVideo,
@@ -33,6 +35,7 @@ import {
   addShowcaseVideoCard,
   updateShowcaseVideoCardAction,
   removeShowcaseVideoCard,
+  saveHomePageVideoAction,
   savePageVideo,
   addAdditionalWorkVideo,
   updateAdditionalWorkVideoAction,
@@ -46,6 +49,7 @@ import ShowcaseReorder from "@/components/dashboard/ShowcaseReorder";
 
 const TABS = [
   { id: "clo3d", label: "CLO 3D", icon: Clapperboard },
+  { id: "home-page-video", label: "Home Page Video", icon: Home },
   { id: "showcase", label: "Showcase Video", icon: Images },
   { id: "final-collection", label: "Final Collections", icon: Film },
   { id: "drapping", label: "Drapping", icon: Film },
@@ -78,17 +82,25 @@ export default async function VideosManagementPage({
     ? (tab as TabId)
     : "clo3d";
 
-  const [clo3dVideos, folders, showcaseVideos, pageVideos, additionalVideos] =
-    await Promise.all([
-      getClo3dVideos(),
-      getClo3dFolders(),
-      getShowcaseVideoCards(),
-      getPageVideos(),
-      getAdditionalWorkVideos(),
-    ]);
+  const [
+    clo3dVideos,
+    folders,
+    showcaseVideos,
+    pageVideos,
+    additionalVideos,
+    homeVideoUrl,
+  ] = await Promise.all([
+    getClo3dVideos(),
+    getClo3dFolders(),
+    getShowcaseVideoCards(),
+    getPageVideos(),
+    getAdditionalWorkVideos(),
+    getHomePageVideoUrl(),
+  ]);
 
   const counts: Record<TabId, number> = {
     clo3d: clo3dVideos.length,
+    "home-page-video": 1,
     showcase: showcaseVideos.length,
     "final-collection": 1,
     drapping: 1,
@@ -160,6 +172,10 @@ export default async function VideosManagementPage({
       <div className="mt-8">
         {activeTab === "clo3d" && (
           <Clo3dTab videos={clo3dVideos} folders={folders} />
+        )}
+
+        {activeTab === "home-page-video" && (
+          <HomePageVideoTab videoUrl={homeVideoUrl} />
         )}
 
         {activeTab === "showcase" && <ShowcaseTab cards={showcaseVideos} />}
@@ -321,6 +337,61 @@ function Clo3dTab({
         </div>
       )}
     </div>
+  );
+}
+
+/* ---------------------------------------------------------
+   Home page video tab (Hero section background video)
+--------------------------------------------------------- */
+function HomePageVideoTab({ videoUrl }: { videoUrl: string }) {
+  return (
+    <form action={saveHomePageVideoAction} className="max-w-2xl">
+      <input type="hidden" name="currentVideoUrl" value={videoUrl} />
+
+      <p className="text-sm text-cream/45">
+        Background video for the homepage hero section. Upload a new file to
+        replace the current one.
+      </p>
+
+      <div className="mt-6 space-y-6 rounded-xl border border-cream/10 bg-card p-5">
+        <div className="flex items-center gap-4">
+          <video
+            src={videoUrl}
+            preload="metadata"
+            muted
+            className="h-20 w-32 shrink-0 rounded-lg border border-cream/10 object-cover"
+          />
+          <span className="text-xs text-cream/40">
+            Current homepage video. Upload a file to replace it.
+          </span>
+        </div>
+
+        <div>
+          <span className={labelClass}>
+            New video (leave empty to keep current)
+          </span>
+          <DirectFileInput
+            urlName="videoUrl"
+            accept="video/*"
+            kind="video"
+            folder="page-videos"
+            label="Choose video file"
+            icon={<Film size={16} />}
+            placeholder="https://.../video.mp4"
+          />
+        </div>
+
+        <UploadProgress label="Uploading video…" />
+
+        <div className="border-t border-cream/10 pt-5">
+          <UploadSubmit
+            idleLabel="Save Changes"
+            pendingLabel="Uploading…"
+            className="inline-flex items-center gap-2 rounded-full bg-[#8DB355] px-6 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-[#9cc163]"
+          />
+        </div>
+      </div>
+    </form>
   );
 }
 

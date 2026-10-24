@@ -319,39 +319,21 @@ export default function AuroraRingGallery({
               {item.videoUrl ? (
                 <video
                   src={item.videoUrl}
-                  poster={item.thumbnail ?? item.src}
+                  poster={item.src}
                   autoPlay
                   loop
                   muted
                   playsInline
                   className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-                  style={{
-                    objectPosition: `${item.cardOffsetX ?? 50}% ${
-                      item.cardOffsetY ?? 50
-                    }%`,
-                    transform: item.thumbnail
-                      ? "none"
-                      : `scale(${item.cardScale ?? 1})`,
-                    transformOrigin: "center",
-                  }}
                 />
               ) : (
                 <Image
-                  src={item.thumbnail ?? item.src}
+                  src={item.src}
                   alt={item.title}
                   fill
                   sizes="150px"
-                  className="object-cover pointer-events-none"
+                  className="object-contain pointer-events-none"
                   loading="lazy"
-                  style={{
-                    objectPosition: `${item.cardOffsetX ?? 50}% ${
-                      item.cardOffsetY ?? 50
-                    }%`,
-                    transform: item.thumbnail
-                      ? "none"
-                      : `scale(${item.cardScale ?? 1})`,
-                    transformOrigin: "center",
-                  }}
                 />
               )}
             </button>
@@ -372,37 +354,22 @@ export default function AuroraRingGallery({
                   <video
                     key={displayIndex}
                     src={displayed.videoUrl}
-                    poster={displayed.thumbnail ?? displayed.src}
+                    poster={displayed.src}
                     autoPlay
                     loop
                     muted
                     playsInline
                     className="absolute inset-0 h-full w-full object-cover"
-                    style={{
-                      transform: `translate(${displayed.cardOffsetX ?? 0}%, ${
-                        displayed.cardOffsetY ?? 0
-                      }%) scale(${displayed.cardScale ?? 1})`,
-                      transformOrigin: "center",
-                    }}
                   />
                 ) : (
                   <Image
                     key={displayIndex}
-                    src={displayed.thumbnail ?? displayed.src}
+                    src={displayed.src}
                     alt={displayed.title}
                     fill
                     sizes="360px"
-                    className="object-cover"
+                    className="object-contain"
                     priority={!hasMountedRef.current}
-                    style={{
-                      objectPosition: `${displayed.cardOffsetX ?? 50}% ${
-                        displayed.cardOffsetY ?? 50
-                      }%`,
-                      transform: displayed.thumbnail
-                        ? "none"
-                        : `scale(${displayed.cardScale ?? 1})`,
-                      transformOrigin: "center",
-                    }}
                   />
                 )}
               </div>

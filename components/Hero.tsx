@@ -34,7 +34,13 @@ const fadeVariants: Variants = {
   },
 };
 
-function Hero({ ready = true }: { ready?: boolean }) {
+function Hero({
+  ready = true,
+  videoUrl = "/video/Background.webm",
+}: {
+  ready?: boolean;
+  videoUrl?: string;
+}) {
   return (
     <section className="relative mt-20 h-[calc(100vh-5rem)] max-h-[calc(100svh-5rem)] min-h-[24rem] w-full flex items-stretch overflow-hidden">
       {/* Dot texture */}
@@ -83,6 +89,7 @@ function Hero({ ready = true }: { ready?: boolean }) {
       {/* Background Video — mobile e pura video dekha jay (contain), desktop ager moto cover */}
       <div className="absolute inset-0 overflow-hidden bg-[#09090A] md:bg-transparent">
         <video
+          src={videoUrl}
           autoPlay
           muted
           loop
@@ -90,9 +97,7 @@ function Hero({ ready = true }: { ready?: boolean }) {
           preload="metadata"
           poster="/images/profile.jpg"
           className="absolute inset-0 h-full w-full object-contain object-center md:object-cover md:object-top md:scale-[1.05]"
-        >
-          <source src="/video/Background.webm" type="video/webm" />
-        </video>
+        />
 
         {/* Light dark overlay for text visibility */}
         <div

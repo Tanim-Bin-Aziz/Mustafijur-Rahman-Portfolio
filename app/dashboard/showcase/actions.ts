@@ -46,29 +46,14 @@ export async function addShowcaseImage(
   if (!values.title) return { error: "Title is required." };
 
   const imageUrl = String(formData.get("imageUrl") || "").trim();
-  const thumbnailUrl = String(formData.get("thumbnailUrl") || "").trim();
 
   if (!imageUrl) {
     return { error: "Please upload an image or provide an image URL." };
   }
 
-  const cardOffsetX = Number.parseFloat(
-    String(formData.get("cardOffsetX") || "50"),
-  );
-  const cardOffsetY = Number.parseFloat(
-    String(formData.get("cardOffsetY") || "50"),
-  );
-  const cardScale = Number.parseFloat(
-    String(formData.get("cardScale") || "1"),
-  );
-
   const { id, error } = await createShowcaseImage({
     ...values,
     imageUrl,
-    thumbnailUrl,
-    cardOffsetX: Number.isNaN(cardOffsetX) ? 50 : cardOffsetX,
-    cardOffsetY: Number.isNaN(cardOffsetY) ? 50 : cardOffsetY,
-    cardScale: Number.isNaN(cardScale) ? 1 : cardScale,
   });
 
   if (!id) return { error: error ?? "Could not save the image." };
@@ -96,29 +81,15 @@ export async function editShowcaseImage(
   if (!values.title) return { error: "Title is required." };
 
   const imageUrl = String(formData.get("imageUrl") || "").trim();
-  const thumbnailUrl = String(formData.get("thumbnailUrl") || "").trim();
 
   if (!imageUrl) {
     return { error: "Please upload an image or provide an image URL." };
   }
 
-  const cardOffsetX = Number.parseFloat(
-    String(formData.get("cardOffsetX") || "50"),
-  );
-  const cardOffsetY = Number.parseFloat(
-    String(formData.get("cardOffsetY") || "50"),
-  );
-  const cardScale = Number.parseFloat(
-    String(formData.get("cardScale") || "1"),
-  );
-
   const { ok, error } = await updateShowcaseImage(imageId, {
     ...values,
     imageUrl,
-    thumbnailUrl: thumbnailUrl || undefined,
-    cardOffsetX: Number.isNaN(cardOffsetX) ? 50 : cardOffsetX,
-    cardOffsetY: Number.isNaN(cardOffsetY) ? 50 : cardOffsetY,
-    cardScale: Number.isNaN(cardScale) ? 1 : cardScale,
+    thumbnailUrl: "",
   });
 
   if (!ok) return { error: error ?? "Could not update the image." };

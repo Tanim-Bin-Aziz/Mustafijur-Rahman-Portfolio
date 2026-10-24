@@ -60,7 +60,7 @@ function ShowcaseCard({ image }: { image: ShowcaseImage }) {
     <div className="group relative overflow-hidden rounded-xl border border-cream/10 bg-card">
       <div className="relative aspect-square w-full overflow-hidden">
         <Image
-          src={image.thumbnailUrl || image.imageUrl}
+          src={image.imageUrl}
           alt={image.title}
           fill
           sizes="(max-width:640px) 50vw, 25vw"

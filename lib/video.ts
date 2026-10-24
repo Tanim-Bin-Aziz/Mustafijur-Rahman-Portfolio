@@ -8,6 +8,56 @@ import {
 export const VIDEO_MIGRATION = "lib/supabase/migrations/010_video_management.sql";
 
 /* ---------------------------------------------------------
+   Home page hero video (Hero section background)
+--------------------------------------------------------- */
+export const HOME_VIDEO_SLUG = "home-page-video";
+export const DEFAULT_HERO_VIDEO = "/video/Background.webm";
+
+export async function getHomePageVideoUrl(): Promise<string> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("page_videos")
+    .select("video_url")
+    .eq("slug", HOME_VIDEO_SLUG)
+    .maybeSingle();
+
+  if (error) {
+    if (!isMissingTable(error.message)) {
+      console.error("getHomePageVideoUrl failed:", error.message);
+    }
+    return DEFAULT_HERO_VIDEO;
+  }
+
+  return data?.video_url || DEFAULT_HERO_VIDEO;
+}
+
+export async function saveHomePageVideo(
+  videoUrl: string,
+): Promise<{ ok: boolean; error: string | null }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("page_videos").upsert(
+    {
+      id: HOME_VIDEO_SLUG,
+      slug: HOME_VIDEO_SLUG,
+      title: "Home Page Video",
+      video_url: videoUrl,
+      description: "",
+      mode: "autoplay",
+    },
+    { onConflict: "id" },
+  );
+
+  if (error) {
+    console.error("saveHomePageVideo failed:", error.message);
+    return { ok: false, error: friendlyVideoError(error.message) };
+  }
+
+  return { ok: true, error: null };
+}
+
+/* ---------------------------------------------------------
    /video page-er cards (Final Collection, Drapping, Studio)
 --------------------------------------------------------- */
 export interface PageVideo {

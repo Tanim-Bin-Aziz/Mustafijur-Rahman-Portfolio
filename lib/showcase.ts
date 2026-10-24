@@ -119,10 +119,6 @@ export async function getShowcaseItems(): Promise<ShowcaseRingItem[]> {
 
   return images.map((image) => ({
     src: image.imageUrl,
-    thumbnail: image.thumbnailUrl || undefined,
-    cardOffsetX: image.cardOffsetX,
-    cardOffsetY: image.cardOffsetY,
-    cardScale: image.cardScale,
     title: image.title,
     category: image.category,
     location: image.location,

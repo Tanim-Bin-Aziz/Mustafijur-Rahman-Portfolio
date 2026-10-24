@@ -24,10 +24,12 @@ export default function HomePage({
   items,
   certificates,
   showcaseVideos,
+  heroVideoUrl,
 }: {
   items: ShowcaseRingItem[];
   certificates: Certificate[];
   showcaseVideos: ShowcaseVideoCard[];
+  heroVideoUrl: string;
 }) {
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +41,7 @@ export default function HomePage({
 
       <Nav ready={!loading} />
       <main>
-        <Hero ready={!loading} />
+        <Hero ready={!loading} videoUrl={heroVideoUrl} />
         {/* <ScrollReveal /> */}
         {/* <Stats /> */}
         {/* <Services /> */}
