@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { getCategory, getProject, getProjectsByCategory } from "@/lib/projects";
+import { getProjectLikeCounts, getProjectReviews } from "@/lib/reviews";
+import { createClient } from "@/lib/supabase/server";
 import ProjectDetailClient from "./ProjectDetailClient";
 
 export default async function ProjectDetailPage({
@@ -20,11 +22,25 @@ export default async function ProjectDetailPage({
   const index = categoryProjects.findIndex((p) => p.slug === slug);
   const nextProject = categoryProjects[(index + 1) % categoryProjects.length];
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isAdmin = !!user;
+
+  const reviews = await getProjectReviews(project.id);
+  const likeCounts: Record<string, number> = isAdmin
+    ? await getProjectLikeCounts(project.id)
+    : {};
+
   return (
     <ProjectDetailClient
       project={project}
       nextProject={nextProject}
       categorySlug={category}
+      isAdmin={isAdmin}
+      likeCounts={likeCounts}
+      reviews={reviews}
     />
   );
 }

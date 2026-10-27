@@ -1,6 +1,14 @@
 "use client";
 
-import { useState, useRef, useCallback, WheelEvent, MouseEvent } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  WheelEvent,
+  MouseEvent,
+  KeyboardEvent,
+} from "react";
 import Image from "next/image";
 import {
   ZoomIn,
@@ -10,19 +18,34 @@ import {
   Maximize2,
   ArrowRight,
   Plus,
+  Heart,
 } from "lucide-react";
 import type { Project } from "@/lib/projects";
+import type { ProjectReview } from "@/lib/reviews";
+import { likeProjectImage } from "@/app/portfolio/actions";
+import StarRating from "@/components/project/StarRating";
+import ReviewForm from "@/components/project/ReviewForm";
+import ReviewList from "@/components/project/ReviewList";
 import PDFViewerModal from "@/components/PDFViewerModal";
 import Nav from "@/components/Nav";
+
+// Public reviews list is hidden for now; flip to true to display it.
+const SHOW_PUBLIC_REVIEWS = false;
 
 export default function ProjectDetailClient({
   project,
   nextProject,
   categorySlug,
+  isAdmin,
+  likeCounts,
+  reviews,
 }: {
   project: Project;
   nextProject: Project;
   categorySlug: string;
+  isAdmin: boolean;
+  likeCounts: Record<string, number>;
+  reviews: ProjectReview[];
 }) {
   const [showFullPdf, setShowFullPdf] = useState(false);
 
@@ -32,6 +55,11 @@ export default function ProjectDetailClient({
   const goToNextProject = () => {
     window.location.href = `/portfolio/${categorySlug}/${nextProject.slug}`;
   };
+
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : 0;
 
   return (
     <>
@@ -99,9 +127,42 @@ export default function ProjectDetailClient({
           {/* Image gallery — grid, click korle zoom view */}
           <ImageGallery
             images={project.previewImages}
+            imageIds={project.imageRecords.map((record) => record.id)}
             title={project.title}
             onOpenPdf={openFullPdf}
+            isAdmin={isAdmin}
+            likeCounts={likeCounts}
           />
+
+          {/* Reviews */}
+          <div className="mt-16 border-t border-white/10 pt-12">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <h2 className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#F4EEE3]/40">
+                Reviews
+              </h2>
+              {reviews.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <StarRating value={Math.round(averageRating)} size={14} />
+                  <span className="font-mono text-xs text-[#F4EEE3]/50">
+                    {averageRating.toFixed(1)} &middot; {reviews.length} review
+                    {reviews.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {SHOW_PUBLIC_REVIEWS && (
+              <div className="mt-8">
+                <ReviewList reviews={reviews} />
+              </div>
+            )}
+
+            <ReviewForm
+              projectId={project.id}
+              categorySlug={categorySlug}
+              slug={project.slug}
+            />
+          </div>
 
           {/* Next project */}
           <div className="flex items-center justify-end mt-16 pt-8 border-t border-white/10">
@@ -131,28 +192,48 @@ export default function ProjectDetailClient({
 /* ------------------ Gallery: grid + zoom/slider view ------------------ */
 function ImageGallery({
   images,
+  imageIds,
   title,
   onOpenPdf,
+  isAdmin,
+  likeCounts,
 }: {
   images: string[];
+  imageIds: string[];
   title: string;
   onOpenPdf: () => void;
+  isAdmin: boolean;
+  likeCounts: Record<string, number>;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const open = (index: number) => {
+    if (index === images.length - 1) onOpenPdf();
+    else setOpenIndex(index);
+  };
 
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {images.map((src, i) => {
           const isLast = i === images.length - 1;
+          const imageId = imageIds[i];
           return (
-            <button
+            <div
               key={i}
-              onClick={() => (isLast ? onOpenPdf() : setOpenIndex(i))}
+              role="button"
+              tabIndex={0}
+              onClick={() => open(i)}
+              onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  open(i);
+                }
+              }}
               aria-label={
                 isLast ? "View the full PDF" : `${title} image ${i + 1}`
               }
-              className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-[#151311] hover:border-[#C89B6A]/50 transition-all duration-300"
+              className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-[#151311] hover:border-[#C89B6A]/50 transition-all duration-300"
             >
               <Image
                 src={src}
@@ -178,10 +259,19 @@ function ImageGallery({
               ) : (
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
               )}
+
+              {!isLast && imageId && (
+                <LikeButton
+                  imageId={imageId}
+                  isAdmin={isAdmin}
+                  initialCount={likeCounts[imageId] ?? 0}
+                />
+              )}
+
               <span className="absolute bottom-2 right-2 font-mono text-[10px] px-2 py-0.5 rounded-full bg-black/50 text-[#F4EEE3]/70">
                 {i + 1}
               </span>
-            </button>
+            </div>
           );
         })}
       </div>
@@ -196,6 +286,70 @@ function ImageGallery({
         />
       )}
     </>
+  );
+}
+
+/* ------------------ Like button (count visible to admin only) ------------------ */
+function LikeButton({
+  imageId,
+  isAdmin,
+  initialCount,
+}: {
+  imageId: string;
+  isAdmin: boolean;
+  initialCount: number;
+}) {
+  const [liked, setLiked] = useState(false);
+  const [count, setCount] = useState(initialCount);
+  const [pending, setPending] = useState(false);
+  const storageKey = `portfolio:liked:${imageId}`;
+
+  useEffect(() => {
+    if (window.localStorage.getItem(storageKey) === "1") setLiked(true);
+  }, [storageKey]);
+
+  useEffect(() => {
+    setCount(initialCount);
+  }, [initialCount]);
+
+  const handleLike = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    event.preventDefault();
+    if (liked || pending) return;
+
+    setLiked(true);
+    setPending(true);
+    setCount((current) => current + 1);
+    window.localStorage.setItem(storageKey, "1");
+
+    const { error } = await likeProjectImage(imageId);
+    setPending(false);
+
+    if (error) {
+      setLiked(false);
+      setCount((current) => Math.max(0, current - 1));
+      window.localStorage.removeItem(storageKey);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleLike}
+      aria-pressed={liked}
+      aria-label={liked ? "Liked" : "Like this image"}
+      title={liked ? "Liked" : "Like this image"}
+      className="absolute right-2 top-2 z-10 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1.5 text-[#F4EEE3] backdrop-blur transition-colors hover:bg-black/75"
+    >
+      <Heart
+        size={15}
+        className={liked ? "text-[#C89B6A]" : ""}
+        fill={liked ? "#C89B6A" : "none"}
+      />
+      {isAdmin && (
+        <span className="font-mono text-[10px] tabular-nums">{count}</span>
+      )}
+    </button>
   );
 }
 

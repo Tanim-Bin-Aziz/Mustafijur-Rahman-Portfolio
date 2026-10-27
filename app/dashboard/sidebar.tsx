@@ -9,11 +9,13 @@ import {
   Images,
   Image as ImageIcon,
   LayoutGrid,
+  MessageSquareHeart,
   Video,
 } from "lucide-react";
 
 const navItems = [
   { name: "Project Management", href: "/dashboard/projects", icon: FolderKanban },
+  { name: "Reviews & Likes", href: "/dashboard/reviews", icon: MessageSquareHeart },
   { name: "Picture Management", href: "/dashboard/pictures", icon: ImageIcon },
   { name: "Showcase Management", href: "/dashboard/showcase", icon: Images },
   { name: "Certificate Management", href: "/dashboard/certificates", icon: Award },

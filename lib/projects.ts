@@ -20,6 +20,7 @@ export interface Project {
   description: string;
   pdfSrc: string;
   previewImages: string[];
+  imageRecords: ProjectImageRecord[];
   sortOrder: number;
 }
 
@@ -29,9 +30,7 @@ export interface ProjectImageRecord {
   sortOrder: number;
 }
 
-export interface ProjectWithImages extends Project {
-  imageRecords: ProjectImageRecord[];
-}
+export type ProjectWithImages = Project;
 
 interface ProjectRow {
   id: string;
@@ -102,23 +101,17 @@ function toProject(row: ProjectRow): Project {
     description: row.description,
     pdfSrc: row.pdf_url,
     previewImages: images.map((image) => image.image_url),
-    sortOrder: row.sort_order ?? 0,
-  };
-}
-
-function toProjectWithImages(row: ProjectRow): ProjectWithImages {
-  const images = [...(row.project_images ?? [])].sort(
-    (a, b) => a.sort_order - b.sort_order,
-  );
-
-  return {
-    ...toProject(row),
     imageRecords: images.map((image) => ({
       id: image.id,
       imageUrl: image.image_url,
       sortOrder: image.sort_order,
     })),
+    sortOrder: row.sort_order ?? 0,
   };
+}
+
+function toProjectWithImages(row: ProjectRow): ProjectWithImages {
+  return toProject(row);
 }
 
 export async function getCategories(): Promise<Category[]> {
