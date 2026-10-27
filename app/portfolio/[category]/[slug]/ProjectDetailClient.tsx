@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Maximize2,
   ArrowRight,
+  Plus,
 } from "lucide-react";
 import type { Project } from "@/lib/projects";
 import PDFViewerModal from "@/components/PDFViewerModal";
@@ -24,6 +25,8 @@ export default function ProjectDetailClient({
   categorySlug: string;
 }) {
   const [showFullPdf, setShowFullPdf] = useState(false);
+
+  const openFullPdf = () => setShowFullPdf(true);
 
   // shei e category-r moddhe next project-e jabe
   const goToNextProject = () => {
@@ -85,7 +88,7 @@ export default function ProjectDetailClient({
               Featured Images
             </h2>
             <button
-              onClick={() => setShowFullPdf(true)}
+              onClick={openFullPdf}
               className="inline-flex items-center gap-2 rounded-full border border-[#C89B6A]/40 bg-[#C89B6A]/10 px-4 md:px-5 py-2.5 text-sm font-medium text-[#C89B6A] hover:bg-[#C89B6A]/20 transition-colors"
             >
               <Maximize2 size={15} />
@@ -94,7 +97,11 @@ export default function ProjectDetailClient({
           </div>
 
           {/* Image gallery — grid, click korle zoom view */}
-          <ImageGallery images={project.previewImages} title={project.title} />
+          <ImageGallery
+            images={project.previewImages}
+            title={project.title}
+            onOpenPdf={openFullPdf}
+          />
 
           {/* Next project */}
           <div className="flex items-center justify-end mt-16 pt-8 border-t border-white/10">
@@ -122,33 +129,61 @@ export default function ProjectDetailClient({
 }
 
 /* ------------------ Gallery: grid + zoom/slider view ------------------ */
-function ImageGallery({ images, title }: { images: string[]; title: string }) {
+function ImageGallery({
+  images,
+  title,
+  onOpenPdf,
+}: {
+  images: string[];
+  title: string;
+  onOpenPdf: () => void;
+}) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {images.map((src, i) => (
-          <button
-            key={i}
-            onClick={() => setOpenIndex(i)}
-            className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-[#151311] hover:border-[#C89B6A]/50 transition-all duration-300"
-          >
-            <Image
-              src={src}
-              alt={`${title} image ${i + 1}`}
-              fill
-              loading="lazy"
-              decoding="async"
-              sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 25vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-            <span className="absolute bottom-2 right-2 font-mono text-[10px] px-2 py-0.5 rounded-full bg-black/50 text-[#F4EEE3]/70">
-              {i + 1}
-            </span>
-          </button>
-        ))}
+        {images.map((src, i) => {
+          const isLast = i === images.length - 1;
+          return (
+            <button
+              key={i}
+              onClick={() => (isLast ? onOpenPdf() : setOpenIndex(i))}
+              aria-label={
+                isLast ? "View the full PDF" : `${title} image ${i + 1}`
+              }
+              className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-[#151311] hover:border-[#C89B6A]/50 transition-all duration-300"
+            >
+              <Image
+                src={src}
+                alt={`${title} image ${i + 1}`}
+                fill
+                loading="lazy"
+                decoding="async"
+                sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 25vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              {isLast ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 group-hover:bg-black/75 transition-colors">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[#C89B6A]/70 bg-black/40 text-[#C89B6A]">
+                    <Plus size={22} />
+                  </span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#F4EEE3]">
+                    View More
+                  </span>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-[#F4EEE3]/50">
+                    Full PDF
+                  </span>
+                </div>
+              ) : (
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+              )}
+              <span className="absolute bottom-2 right-2 font-mono text-[10px] px-2 py-0.5 rounded-full bg-black/50 text-[#F4EEE3]/70">
+                {i + 1}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {openIndex !== null && (

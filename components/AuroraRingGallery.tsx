@@ -35,6 +35,9 @@ interface AuroraRingGalleryProps {
   speed?: number; // degrees / second, continuous auto-rotate speed
 }
 
+// Ring-ke caption/text theke niche soriye dey — front card jate title er upor na uthe
+const RING_OFFSET_Y = 48;
+
 const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -52,8 +55,8 @@ export default function AuroraRingGallery({
   subheading = "Explore garments, textile studies, print artworks and collection looks from the atelier.",
   rx = 620,
   ry = 220,
-  cardWidth = 64,
-  cardHeight = 92,
+  cardWidth = 80,
+  cardHeight = 114,
   speed = 2, // deg/sec
 }: AuroraRingGalleryProps) {
   const n = items.length;
@@ -80,7 +83,7 @@ export default function AuroraRingGallery({
     [rx, ry, cardWidth, cardHeight],
   );
   const designWidth = dims.rx * 2 + dims.cardWidth * 2;
-  const designHeight = dims.ry * 2 + dims.cardHeight * 1.4;
+  const designHeight = dims.ry * 2 + dims.cardHeight * 1.4 + RING_OFFSET_Y;
 
   const stageWrapRef = useRef<HTMLDivElement>(null);
   const [stageScale, setStageScale] = useState(1);
@@ -135,10 +138,11 @@ export default function AuroraRingGallery({
       const thetaDeg = (((base + (360 / n) * i) % 360) + 360) % 360;
       const theta = (thetaDeg * Math.PI) / 180;
       const x = round2(Math.cos(theta) * dims.rx);
-      const y = round2(Math.sin(theta) * dims.ry);
+      const ellipseY = Math.sin(theta) * dims.ry;
 
       // depth: y = -ry (upore, dure) → 0, y = +ry (niche, kache) → 1
-      const depth = clamp((y + dims.ry) / (dims.ry * 2), 0, 1);
+      const depth = clamp((ellipseY + dims.ry) / (dims.ry * 2), 0, 1);
+      const y = round2(ellipseY + RING_OFFSET_Y / 2);
       const scale = round2(lerp(0.55, 1.15, depth));
       const opacity = round2(lerp(0.45, 1, depth));
       const tilt = round2((x / dims.rx) * 14); // fan-tilt, left/right onujayi
@@ -342,7 +346,13 @@ export default function AuroraRingGallery({
           {/* Center popup — default-e jei card front cross korche shetai dekhay,
             hover korle override hoy, hover shorai nile abar auto-follow-e fire ashe */}
           {displayed && (
-            <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -mt-9 z-[500] flex flex-col items-center animate-fade-in">
+            <div
+              className="pointer-events-none absolute left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-9 flex flex-col items-center animate-fade-in"
+              style={{
+                top: designHeight / 2 - RING_OFFSET_Y / 2,
+                zIndex: 1000,
+              }}
+            >
               <div
                 className="pointer-events-auto relative overflow-hidden rounded-lg shadow-2xl cursor-pointer"
                 style={{ width: popupDims.width, height: popupDims.height }}
@@ -373,7 +383,7 @@ export default function AuroraRingGallery({
                   />
                 )}
               </div>
-              <div className="pointer-events-none mt-3 text-center">
+              <div className="pointer-events-none relative mt-2 w-[300px] max-w-full text-center">
                 <p className="font-bold text-[#0B0908] text-lg">
                   {displayed.title}
                 </p>
