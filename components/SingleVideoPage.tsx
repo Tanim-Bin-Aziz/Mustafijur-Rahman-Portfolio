@@ -89,14 +89,14 @@ export default function SingleVideoPage({ item }: { item: VideoItem }) {
         </h1>
 
         <div
-          className={`group relative w-full aspect-video rounded-2xl overflow-hidden border border-white/10 bg-black ${
+          className={`group relative w-full flex items-center justify-center rounded-2xl overflow-hidden border border-white/10 bg-black ${
             isClickMode ? "cursor-pointer" : ""
           }`}
           onClick={() => isClickMode && setFullscreen(true)}
         >
           <video
             src={item.videoSrc}
-            className="w-full h-full object-cover"
+            className="w-full h-auto max-h-[85vh] object-contain"
             controls
             controlsList={isAdmin ? "nofullscreen" : "nodownload nofullscreen"}
             disablePictureInPicture={!isAdmin}
