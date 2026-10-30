@@ -16,6 +16,7 @@ import {
   createAdditionalWorkVideo,
   updateAdditionalWorkVideo,
   deleteAdditionalWorkVideo,
+  pageVideoTabForSlug,
 } from "@/lib/video";
 
 function errorUrl(tab: string, message: string) {
@@ -172,14 +173,18 @@ export async function savePageVideo(formData: FormData) {
   const description = String(formData.get("description") || "").trim();
   const modeValue = String(formData.get("mode") || "autoplay");
   const mode = modeValue === "click-fullscreen" ? "click-fullscreen" : "autoplay";
+  const tab = pageVideoTabForSlug(slug) ?? "final-collection";
 
-  if (!slug) redirect(errorUrl("final-collection", "Missing video id."));
-  if (!title) redirect(errorUrl(slug, "Title is required."));
+  if (!slug) redirect(errorUrl(tab, "Missing video id."));
+  if (!title) redirect(errorUrl(tab, "Title is required."));
 
   const videoUrl = readVideoUrl(formData, "currentVideoUrl");
-  const cover = String(formData.get("coverUrl") || "").trim() || undefined;
+  const cover =
+    String(formData.get("coverUrl") || "").trim() ||
+    String(formData.get("currentCover") || "").trim() ||
+    undefined;
 
-  if (!videoUrl) redirect(errorUrl(slug, "Upload a video or provide a URL."));
+  if (!videoUrl) redirect(errorUrl(tab, "Upload a video or provide a URL."));
 
   const { ok, error } = await updatePageVideo(slug, {
     title,
@@ -189,13 +194,13 @@ export async function savePageVideo(formData: FormData) {
     mode,
   });
 
-  if (error) redirect(errorUrl(slug, error));
+  if (error) redirect(errorUrl(tab, error));
 
   revalidatePath("/video");
   revalidatePath(`/video/${slug}`);
   revalidatePath("/");
   revalidatePath("/dashboard/videos");
-  redirect(`/dashboard/videos?tab=${slug}&saved=1`);
+  redirect(`/dashboard/videos?tab=${tab}&saved=1`);
 }
 
 /* ---------------------------------------------------------

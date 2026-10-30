@@ -70,6 +70,32 @@ export interface PageVideo {
   mode: "autoplay" | "click-fullscreen";
 }
 
+/* Dashboard tab id <-> row slug. The tab is "drapping" but the stored
+   card slug is "drapping-final-dress", so they cannot be used blindly. */
+export const PAGE_VIDEO_CARDS = [
+  { tab: "final-collection", slug: "final-collection", label: "Final Collection" },
+  {
+    tab: "drapping",
+    slug: "drapping-final-dress",
+    label: "Drapping Final Dress",
+  },
+  {
+    tab: "studio-collection",
+    slug: "studio-collection",
+    label: "Studio Collection",
+  },
+] as const;
+
+export type PageVideoCard = (typeof PAGE_VIDEO_CARDS)[number];
+
+export function pageVideoCard(tab: string): PageVideoCard | null {
+  return PAGE_VIDEO_CARDS.find((card) => card.tab === tab) ?? null;
+}
+
+export function pageVideoTabForSlug(slug: string): string | null {
+  return PAGE_VIDEO_CARDS.find((card) => card.slug === slug)?.tab ?? null;
+}
+
 interface PageVideoRow {
   id: string;
   slug: string;
@@ -137,9 +163,22 @@ export async function getPageVideos(): Promise<PageVideo[]> {
     return staticPageVideos();
   }
 
-  if (!data || data.length === 0) return staticPageVideos();
+  const stored = ((data ?? []) as unknown as PageVideoRow[]).map(toPageVideo);
 
-  return (data as unknown as PageVideoRow[]).map(toPageVideo);
+  // Keep every default card available so its dashboard tab is always editable,
+  // even when the table exists but a row was never seeded.
+  const bySlug = new Map(stored.map((video) => [video.slug, video]));
+  const merged = staticPageVideos().map(
+    (fallback) => bySlug.get(fallback.slug) ?? fallback,
+  );
+
+  for (const video of stored) {
+    if (!merged.some((existing) => existing.slug === video.slug)) {
+      merged.push(video);
+    }
+  }
+
+  return merged;
 }
 
 export async function getPageVideo(slug: string): Promise<PageVideo | null> {
@@ -160,6 +199,8 @@ export async function updatePageVideo(
   const supabase = await createClient();
 
   const patch: Record<string, string> = {
+    id: slug,
+    slug,
     title: values.title,
     video_url: values.videoUrl,
     description: values.description,
@@ -169,8 +210,7 @@ export async function updatePageVideo(
 
   const { error } = await supabase
     .from("page_videos")
-    .update(patch)
-    .eq("slug", slug);
+    .upsert(patch, { onConflict: "id" });
 
   if (error) {
     console.error("updatePageVideo failed:", error.message);

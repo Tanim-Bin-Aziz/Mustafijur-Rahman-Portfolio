@@ -26,8 +26,10 @@ import {
   getPageVideos,
   getAdditionalWorkVideos,
   getHomePageVideoUrl,
+  pageVideoCard,
   VIDEO_MIGRATION,
   type PageVideo,
+  type PageVideoCard,
   type AdditionalWorkVideo,
 } from "@/lib/video";
 import { removeClo3dVideo, removeClo3dFolder } from "./clo3d/actions";
@@ -58,12 +60,6 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
-
-const PAGE_VIDEO_TABS: Record<string, string> = {
-  "final-collection": "Final Collection",
-  drapping: "Drapping Final Dress",
-  "studio-collection": "Studio Collection",
-};
 
 const fieldClass =
   "w-full rounded-lg border border-cream/10 bg-bg/60 px-3.5 py-2.5 text-sm text-cream placeholder:text-cream/30 outline-none transition-colors focus:border-[#8DB355]";
@@ -110,6 +106,8 @@ export default async function VideosManagementPage({
 
   const pageVideoBySlug = (slug: string) =>
     pageVideos.find((video) => video.slug === slug) ?? null;
+
+  const activePageCard = pageVideoCard(activeTab);
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -180,10 +178,10 @@ export default async function VideosManagementPage({
 
         {activeTab === "showcase" && <ShowcaseTab cards={showcaseVideos} />}
 
-        {PAGE_VIDEO_TABS[activeTab] && (
+        {activePageCard && (
           <PageVideoTab
-            label={PAGE_VIDEO_TABS[activeTab]}
-            video={pageVideoBySlug(activeTab)}
+            card={activePageCard}
+            video={pageVideoBySlug(activePageCard.slug)}
           />
         )}
 
@@ -565,16 +563,16 @@ function ShowcaseTab({ cards }: { cards: ShowcaseVideoCard[] }) {
    /video page card tabs (Final Collection / Drapping / Studio)
 --------------------------------------------------------- */
 function PageVideoTab({
-  label,
+  card,
   video,
 }: {
-  label: string;
+  card: PageVideoCard;
   video: PageVideo | null;
 }) {
   if (!video) {
     return (
       <div className="rounded-xl border border-cream/10 bg-card px-5 py-6 text-sm text-cream/50">
-        {label} card not found. Run the SQL in{" "}
+        {card.label} card not found. Run the SQL in{" "}
         <code className="text-[#8DB355]">{VIDEO_MIGRATION}</code> in your
         Supabase project first.
       </div>
@@ -583,8 +581,9 @@ function PageVideoTab({
 
   return (
     <form action={savePageVideo} className="max-w-2xl">
-      <input type="hidden" name="slug" value={video.slug} />
+      <input type="hidden" name="slug" value={card.slug} />
       <input type="hidden" name="currentVideoUrl" value={video.videoUrl} />
+      <input type="hidden" name="currentCover" value={video.cover} />
 
       <p className="text-sm text-cream/45">
         Card at <code className="text-[#8DB355]">/video/{video.slug}</code> —
@@ -686,13 +685,14 @@ function PageVideoTab({
           />
         </div>
 
+        <UploadProgress label="Uploading video…" />
+
         <div className="border-t border-cream/10 pt-5">
-          <button
-            type="submit"
+          <UploadSubmit
+            idleLabel="Save Changes"
+            pendingLabel="Uploading…"
             className="rounded-full bg-[#8DB355] px-6 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-[#9cc163]"
-          >
-            Save Changes
-          </button>
+          />
         </div>
       </div>
     </form>
