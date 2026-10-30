@@ -19,17 +19,20 @@ import AuroraRingGallery from "@/components/AuroraRingGallery";
 import type { ShowcaseRingItem } from "@/data/showcase";
 import type { ShowcaseVideoCard } from "@/lib/showcase";
 import type { Certificate } from "@/lib/certificates";
+import type { SiteReview } from "@/lib/reviews";
 
 export default function HomePage({
   items,
   certificates,
   showcaseVideos,
   heroVideoUrl,
+  reviews,
 }: {
   items: ShowcaseRingItem[];
   certificates: Certificate[];
   showcaseVideos: ShowcaseVideoCard[];
   heroVideoUrl: string;
+  reviews: SiteReview[];
 }) {
   const [loading, setLoading] = useState(true);
 
@@ -66,8 +69,8 @@ export default function HomePage({
           />
         )}
         <Certifications certificates={certificates} />
+        <Testimonials reviews={reviews} />
         <Experience />
-        <Testimonials />
         <Contact />
       </main>
       <Footer />

@@ -1,6 +1,16 @@
 import { createClient } from "./supabase/server";
 
 export const REVIEWS_MIGRATION = "lib/supabase/migrations/015_likes_reviews.sql";
+export const STANDALONE_REVIEWS_MIGRATION =
+  "lib/supabase/migrations/016_standalone_reviews.sql";
+
+export interface SiteReview {
+  id: string;
+  name: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
 
 export interface ProjectReview {
   id: string;
@@ -52,6 +62,14 @@ interface ReviewRow {
   projects?: ProjectRef | ProjectRef[] | null;
 }
 
+interface SiteReviewRow {
+  id: string;
+  name: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+}
+
 interface LikeRow {
   image_id: string;
   like_count: number;
@@ -86,7 +104,7 @@ const REVIEW_WITH_PROJECT_SELECT = `
   rating,
   comment,
   created_at,
-  projects!inner ( id, title, slug, categories ( slug ) )
+  projects ( id, title, slug, categories ( slug ) )
 `;
 
 const LIKE_SELECT = `
@@ -118,6 +136,16 @@ function toReview(row: ReviewRow): ProjectReview {
     name: row.name,
     rating: row.rating,
     comment: row.comment,
+    createdAt: row.created_at,
+  };
+}
+
+function toSiteReview(row: SiteReviewRow): SiteReview {
+  return {
+    id: row.id,
+    name: row.name,
+    rating: row.rating,
+    comment: row.comment ?? "",
     createdAt: row.created_at,
   };
 }
@@ -161,6 +189,24 @@ export async function getProjectReviews(
   return ((data ?? []) as unknown as ReviewRow[]).map(toReview);
 }
 
+export async function getHomeReviews(): Promise<SiteReview[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("project_reviews")
+    .select(REVIEW_SELECT)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    if (!isMissingReviewSchema(error.message)) {
+      console.error("getHomeReviews failed:", error.message);
+    }
+    return [];
+  }
+
+  return ((data ?? []) as unknown as SiteReviewRow[]).map(toSiteReview);
+}
+
 export async function getAllReviewsWithProjects(): Promise<
   ReviewWithProject[]
 > {
@@ -182,7 +228,21 @@ export async function getAllReviewsWithProjects(): Promise<
 
   for (const row of (data ?? []) as unknown as ReviewRow[]) {
     const project = unwrap(row.projects);
-    if (!project) continue;
+
+    if (!project) {
+      reviews.push({
+        id: row.id,
+        projectId: "",
+        name: row.name,
+        rating: row.rating,
+        comment: row.comment ?? "",
+        createdAt: row.created_at,
+        projectTitle: "Home page review",
+        projectSlug: "",
+        categorySlug: "",
+      });
+      continue;
+    }
 
     reviews.push({
       ...toReview(row),
@@ -295,6 +355,40 @@ export async function incrementImageLike(
 
   if (error) return { error: friendlyReviewError(error.message) };
   return { error: null };
+}
+
+function friendlyStandaloneReviewError(message: string) {
+  if (
+    /null value in column/i.test(message) ||
+    /violates row-level security/i.test(message) ||
+    /not-null/i.test(message)
+  ) {
+    return `Home page reviews need the SQL in ${STANDALONE_REVIEWS_MIGRATION} run in Supabase first.`;
+  }
+  return friendlyReviewError(message);
+}
+
+export async function addSiteReview(input: {
+  name: string;
+  rating: number;
+  comment: string;
+}): Promise<{ id: string | null; error: string | null }> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("project_reviews")
+    .insert({
+      name: input.name,
+      rating: input.rating,
+      comment: input.comment,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return { id: null, error: friendlyStandaloneReviewError(error.message) };
+  }
+  return { id: data?.id ?? null, error: null };
 }
 
 export async function addProjectReview(input: {

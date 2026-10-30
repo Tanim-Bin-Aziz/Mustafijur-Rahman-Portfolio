@@ -30,7 +30,6 @@ function validateReviewFields(fields: {
   if (fields.name.length > 80) {
     return "Name must be 80 characters or fewer.";
   }
-  if (!fields.comment) return "Comment is required.";
   if (fields.comment.length > 2000) {
     return "Comment must be 2000 characters or fewer.";
   }
@@ -93,6 +92,7 @@ export async function updateReview(
 
   await revalidateProjectPage(projectId);
   revalidatePath("/dashboard/reviews");
+  revalidatePath("/");
   return { error: null, saved: true };
 }
 
@@ -112,5 +112,6 @@ export async function deleteReview(formData: FormData) {
 
   await revalidateProjectPage(projectId);
   revalidatePath("/dashboard/reviews");
+  revalidatePath("/");
   redirect("/dashboard/reviews");
 }

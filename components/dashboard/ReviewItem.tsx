@@ -73,8 +73,10 @@ export default function ReviewItem({
           <div>
             <p className="text-sm text-cream">{review.name}</p>
             <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-cream/35">
-              {review.categorySlug} / {review.projectTitle} ·{" "}
-              {formatDate(review.createdAt)}
+              {[review.categorySlug, review.projectTitle]
+                .filter(Boolean)
+                .join(" / ")}{" "}
+              · {formatDate(review.createdAt)}
             </p>
           </div>
         </div>
@@ -173,9 +175,13 @@ export default function ReviewItem({
             </p>
           )}
         </form>
-      ) : (
+      ) : review.comment ? (
         <p className="mt-4 whitespace-pre-line text-sm leading-7 text-cream/60">
           {review.comment}
+        </p>
+      ) : (
+        <p className="mt-4 text-sm italic text-cream/30">
+          No comment — rating only.
         </p>
       )}
     </article>

@@ -1,7 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addProjectReview, incrementImageLike } from "@/lib/reviews";
+import {
+  addProjectReview,
+  addSiteReview,
+  incrementImageLike,
+} from "@/lib/reviews";
 
 export type ReviewFormState = {
   error: string | null;
@@ -17,6 +21,40 @@ export async function likeProjectImage(
   }
 
   return incrementImageLike(id);
+}
+
+export async function submitHomeReview(
+  _prevState: ReviewFormState,
+  formData: FormData,
+): Promise<ReviewFormState> {
+  const name = String(formData.get("name") || "").trim();
+  const comment = String(formData.get("comment") || "").trim();
+  const rating = Number.parseInt(String(formData.get("rating") || "0"), 10);
+
+  if (!name) return { error: "Please add your name.", success: false };
+  if (name.length > 80) {
+    return { error: "Name must be 80 characters or fewer.", success: false };
+  }
+  if (comment.length > 2000) {
+    return {
+      error: "Comment must be 2000 characters or fewer.",
+      success: false,
+    };
+  }
+  if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+    return { error: "Please pick a star rating.", success: false };
+  }
+
+  const { id, error } = await addSiteReview({ name, rating, comment });
+
+  if (!id) {
+    return { error: error ?? "Could not save your review.", success: false };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/dashboard/reviews");
+
+  return { error: null, success: true };
 }
 
 export async function submitProjectReview(
