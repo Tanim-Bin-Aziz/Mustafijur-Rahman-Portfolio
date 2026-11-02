@@ -143,11 +143,15 @@ export async function saveHomePageVideoAction(formData: FormData) {
   if (!user) redirect("/login");
 
   const videoUrl = readVideoUrl(formData, "currentVideoUrl");
+  const coverUrl = String(formData.get("coverUrl") || "").trim();
 
   if (!videoUrl)
     redirect(errorUrl("home-page-video", "Upload a video or provide a URL."));
 
-  const { ok, error } = await saveHomePageVideo(videoUrl);
+  const { ok, error } = await saveHomePageVideo(
+    videoUrl,
+    coverUrl || undefined,
+  );
 
   if (!ok)
     redirect(errorUrl("home-page-video", error ?? "Could not save the video."));

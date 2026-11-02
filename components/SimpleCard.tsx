@@ -12,13 +12,15 @@ export default function SimpleCard({
   href: string;
   priority?: boolean; // first card above the fold-e priority load
 }) {
+  const safeCover = cover || "/images/thum3.jpg";
+
   return (
     <Link
       href={href}
       className="group relative block w-full aspect-[16/10] overflow-hidden rounded-2xl border border-white/10 bg-[#1A1613] transition-all duration-500 hover:border-[#C89B6A]/50"
     >
       <Image
-        src={cover}
+        src={safeCover}
         alt={title}
         fill
         priority={priority}

@@ -2,9 +2,13 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import SimpleCard from "@/components/SimpleCard";
 import { getPageVideos, toVideoItem } from "@/lib/video";
+import { getVideoProjects } from "@/lib/video-projects";
 
 export default async function VideoIndexPage() {
-  const videos = await getPageVideos();
+  const [videos, projects] = await Promise.all([
+    getPageVideos(),
+    getVideoProjects(),
+  ]);
 
   const extraLinks = [
     {
@@ -17,6 +21,11 @@ export default async function VideoIndexPage() {
       cover: "/images/thum2.jpg",
       href: "/video/additional-work",
     },
+    ...projects.map((project) => ({
+      title: project.title,
+      cover: project.cover || "/images/thum3.jpg",
+      href: `/video/${project.slug}`,
+    })),
   ];
 
   return (

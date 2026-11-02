@@ -32,6 +32,7 @@ import {
   type PageVideoCard,
   type AdditionalWorkVideo,
 } from "@/lib/video";
+import { getVideoProjects, type VideoProject } from "@/lib/video-projects";
 import { removeClo3dVideo, removeClo3dFolder } from "./clo3d/actions";
 import {
   addShowcaseVideoCard,
@@ -57,6 +58,7 @@ const TABS = [
   { id: "drapping", label: "Drapping", icon: Film },
   { id: "studio-collection", label: "Studio Collections", icon: Film },
   { id: "additional-work", label: "Additional Work", icon: Video },
+  { id: "video-projects", label: "Video Projects", icon: Folder },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -85,6 +87,7 @@ export default async function VideosManagementPage({
     pageVideos,
     additionalVideos,
     homeVideoUrl,
+    videoProjects,
   ] = await Promise.all([
     getClo3dVideos(),
     getClo3dFolders(),
@@ -92,6 +95,7 @@ export default async function VideosManagementPage({
     getPageVideos(),
     getAdditionalWorkVideos(),
     getHomePageVideoUrl(),
+    getVideoProjects(),
   ]);
 
   const counts: Record<TabId, number> = {
@@ -102,6 +106,7 @@ export default async function VideosManagementPage({
     drapping: 1,
     "studio-collection": 1,
     "additional-work": additionalVideos.length,
+    "video-projects": videoProjects.length,
   };
 
   const pageVideoBySlug = (slug: string) =>
@@ -122,7 +127,7 @@ export default async function VideosManagementPage({
       </div>
 
       {/* Top bar — section cards */}
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
         {TABS.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
 
@@ -187,6 +192,10 @@ export default async function VideosManagementPage({
 
         {activeTab === "additional-work" && (
           <AdditionalWorkTab videos={additionalVideos} />
+        )}
+
+        {activeTab === "video-projects" && (
+          <VideoProjectsTab projects={videoProjects} />
         )}
       </div>
     </div>
@@ -376,6 +385,20 @@ function HomePageVideoTab({ videoUrl }: { videoUrl: string }) {
             label="Choose video file"
             icon={<Film size={16} />}
             placeholder="https://.../video.mp4"
+          />
+        </div>
+
+        <div>
+          <span className={labelClass}>
+            Card image (leave empty to keep current)
+          </span>
+          <DirectFileInput
+            urlName="coverUrl"
+            accept="image/*"
+            kind="cover"
+            folder="page-videos"
+            label="Choose card image"
+            icon={<Images size={16} />}
           />
         </div>
 
@@ -696,6 +719,65 @@ function PageVideoTab({
         </div>
       </div>
     </form>
+  );
+}
+
+/* ---------------------------------------------------------
+   Video Projects tab
+--------------------------------------------------------- */
+function VideoProjectsTab({ projects }: { projects: VideoProject[] }) {
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p className="text-sm text-cream/45">
+          Custom video galleries you create (like Additional Work). Each one gets
+          its own page at /video/&lt;slug&gt;.
+        </p>
+
+        <Link
+          href="/dashboard/videos/projects/new"
+          className="inline-flex items-center gap-2 rounded-full bg-[#8DB355] px-5 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-[#9cc163]"
+        >
+          <Plus size={16} />
+          Add project
+        </Link>
+      </div>
+
+      {projects.length === 0 ? (
+        <div className="mt-6 rounded-xl border border-dashed border-cream/15 px-5 py-10 text-center text-sm text-cream/45">
+          No video projects yet. Click “Add project” to create the first one.
+        </div>
+      ) : (
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {projects.map((project) => (
+            <Link
+              key={project.id}
+              href={`/dashboard/videos/projects/${project.slug}`}
+              className="group overflow-hidden rounded-2xl border border-cream/10 bg-card transition-colors hover:border-[#8DB355]/50"
+            >
+              <div className="p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="font-serif text-lg text-cream">
+                    {project.title}
+                  </h2>
+                  <span className="shrink-0 rounded-full bg-[#8DB355]/15 px-2.5 py-0.5 font-mono text-[10px] text-[#8DB355]">
+                    {project.videoCount} video
+                    {project.videoCount === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <p className="mt-2 line-clamp-2 text-xs leading-5 text-cream/40">
+                  /video/{project.slug}
+                </p>
+                <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-cream/50 transition-colors group-hover:text-[#8DB355]">
+                  Manage
+                  <ArrowUpRight size={13} />
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -34,18 +34,22 @@ export async function getHomePageVideoUrl(): Promise<string> {
 
 export async function saveHomePageVideo(
   videoUrl: string,
+  cover?: string,
 ): Promise<{ ok: boolean; error: string | null }> {
   const supabase = await createClient();
 
+  const payload: Record<string, string> = {
+    id: HOME_VIDEO_SLUG,
+    slug: HOME_VIDEO_SLUG,
+    title: "Home Page Video",
+    video_url: videoUrl,
+    description: "",
+    mode: "autoplay",
+  };
+  if (cover) payload.cover = cover;
+
   const { error } = await supabase.from("page_videos").upsert(
-    {
-      id: HOME_VIDEO_SLUG,
-      slug: HOME_VIDEO_SLUG,
-      title: "Home Page Video",
-      video_url: videoUrl,
-      description: "",
-      mode: "autoplay",
-    },
+    payload,
     { onConflict: "id" },
   );
 
