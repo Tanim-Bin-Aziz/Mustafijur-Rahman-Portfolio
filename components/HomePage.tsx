@@ -17,9 +17,11 @@ import PixelWarpGallery from "@/components/PixelWarpGallery";
 import ImageDisplay from "@/components/ImageDisplay";
 import AuroraRingGallery from "@/components/AuroraRingGallery";
 import ProjectCard from "@/components/ProjectCard";
-import Link from "next/link";
+import ImageGallerySystem from "@/components/ImageGallerySystem";
+import Image from "next/image";
 import type { ShowcaseRingItem } from "@/data/showcase";
 import type { Project } from "@/lib/projects";
+import type { GalleryFolder, GalleryImage } from "@/lib/gallery";
 import type { ShowcaseVideoCard } from "@/lib/showcase";
 import type { Certificate } from "@/lib/certificates";
 import type { SiteReview } from "@/lib/reviews";
@@ -31,6 +33,8 @@ export default function HomePage({
   heroVideoUrl,
   reviews,
   projectGroups,
+  galleryFolders,
+  galleryImages,
 }: {
   items: ShowcaseRingItem[];
   certificates: Certificate[];
@@ -38,8 +42,12 @@ export default function HomePage({
   heroVideoUrl: string;
   reviews: SiteReview[];
   projectGroups: { label: string; slug: string; projects: Project[] }[];
+  galleryFolders: GalleryFolder[];
+  galleryImages: GalleryImage[];
 }) {
   const [loading, setLoading] = useState(true);
+  const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   return (
     <>
@@ -59,42 +67,103 @@ export default function HomePage({
         {projectGroups.some((g) => g.projects.length > 0) && (
           <section className="relative py-20 px-6 bg-[#0d0d0a]">
             <div className="max-w-6xl mx-auto">
-              <div className="mb-10 text-center">
-                <h2 className="font-serif font-black italic text-4xl md:text-6xl tracking-tight text-[#F4EEE3]">
-                  Projects
-                </h2>
-              </div>
-              <div className="space-y-10">
+              <div className="space-y-20">
                 {projectGroups
                   .filter((g) => g.projects.length > 0)
-                  .map((group) => (
-                    <div key={group.slug} className="grid grid-cols-1 md:grid-cols-[140px_1fr] gap-6 items-start">
-                      <p className="font-mono text-[11px] tracking-[0.25em] uppercase text-[#8db355] pt-3">
-                        {group.label}
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {group.projects.map((p) => (
-                          <ProjectCard
-                            key={p.id}
-                            title={p.title}
-                            cover={p.cover}
-                            previewImages={p.previewImages}
-                            href={`/portfolio/${group.slug}/${p.slug}`}
-                            priority={false}
-                          />
-                        ))}
+                  .map((group) => {
+                    const visible = visibleCounts[group.slug] ?? 4;
+                    const shown = group.projects.slice(0, visible);
+                    const hasMore = visible < group.projects.length;
+                    return (
+                      <div key={group.slug}>
+                        <div className="mb-8 text-center">
+                          <h2 className="font-serif font-black italic text-4xl md:text-6xl tracking-tight text-[#F4EEE3]">
+                            {group.label}
+                          </h2>
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-6">
+                          {shown.map((p) => (
+                            <div
+                              key={p.id}
+                              className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)]"
+                            >
+                              <ProjectCard
+                                title={p.title}
+                                cover={p.cover}
+                                previewImages={p.previewImages}
+                                href={`/portfolio/${group.slug}/${p.slug}`}
+                                priority={false}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        {hasMore && (
+                          <div className="mt-8 flex justify-center">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setVisibleCounts((prev) => ({
+                                  ...prev,
+                                  [group.slug]: Math.min(
+                                    (prev[group.slug] ?? 4) + 4,
+                                    group.projects.length,
+                                  ),
+                                }))
+                              }
+                              className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-2.5 text-sm text-[#F4EEE3]/70 hover:text-[#8db355] hover:border-[#8db355]/50 transition-colors"
+                            >
+                              View more →
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
-              <div className="mt-10 flex justify-center">
-                <Link
-                  href="/portfolio"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-2.5 text-sm text-[#F4EEE3]/70 hover:text-[#8db355] hover:border-[#8db355]/50 transition-colors"
-                >
-                  View more →
-                </Link>
+            </div>
+          </section>
+        )}
+        {galleryImages.length > 0 && (
+          <section className="relative py-20 px-6 bg-[#0d0d0a] border-t border-white/5">
+            <div className="max-w-6xl mx-auto">
+              <div className="mb-8 text-center">
+                <h2 className="font-serif font-black italic text-4xl md:text-6xl tracking-tight text-[#F4EEE3]">
+                  Gallery
+                </h2>
               </div>
+              {!galleryOpen ? (
+                <div className="relative rounded-3xl border border-white/10 bg-white/5 p-4">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+                    {galleryImages.slice(0, 12).map((img) => (
+                      <div
+                        key={img.id}
+                        className="relative aspect-square rounded-xl overflow-hidden border border-white/10 bg-black/40"
+                      >
+                        <Image
+                          src={img.imageUrl}
+                          alt={img.title}
+                          fill
+                          sizes="(max-width:640px) 33vw, (max-width:1024px) 25vw, 16vw"
+                          className="object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 rounded-b-3xl bg-gradient-to-t from-[#0d0d0a] via-[#0d0d0a]/85 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 flex justify-center pb-5">
+                    <button
+                      type="button"
+                      onClick={() => setGalleryOpen(true)}
+                      className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#0d0d0a]/80 px-6 py-2.5 text-sm text-[#F4EEE3]/70 hover:text-[#8db355] hover:border-[#8db355]/50 transition-colors"
+                    >
+                      View more →
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <ImageGallerySystem folders={galleryFolders} images={galleryImages} />
+              )}
             </div>
           </section>
         )}

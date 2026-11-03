@@ -4,9 +4,10 @@ import { getCertificates } from "@/lib/certificates";
 import { getHomePageVideoUrl } from "@/lib/video";
 import { getHomeReviews } from "@/lib/reviews";
 import { getProjectsByCategory } from "@/lib/projects";
+import { getGalleryFolders, getGalleryImages } from "@/lib/gallery";
 
 export default async function Home() {
-  const [items, certificates, showcaseVideos, heroVideoUrl, reviews, academicProjects, professionalProjects, additionalProjects] =
+  const [items, certificates, showcaseVideos, heroVideoUrl, reviews, academicProjects, professionalProjects, additionalProjects, galleryFolders, galleryImages] =
     await Promise.all([
       getShowcaseItems(),
       getCertificates(),
@@ -16,7 +17,10 @@ export default async function Home() {
       getProjectsByCategory("academic-hons"),
       getProjectsByCategory("professional"),
       getProjectsByCategory("additional-work"),
+      getGalleryFolders(),
+      getGalleryImages(),
     ]);
+  console.log("PROJECT COUNTS", academicProjects.length, professionalProjects.length, additionalProjects.length);
 
   return (
     <HomePage
@@ -26,10 +30,13 @@ export default async function Home() {
       heroVideoUrl={heroVideoUrl}
       reviews={reviews}
       projectGroups={[
-        { label: "Academic Hons", slug: "academic-hons", projects: academicProjects.slice(0, 4) },
-        { label: "Professional", slug: "professional", projects: professionalProjects.slice(0, 4) },
-        { label: "Additional Work", slug: "additional-work", projects: additionalProjects.slice(0, 4) },
+        { label: "Academic Hons", slug: "academic-hons", projects: academicProjects },
+        { label: "Professional", slug: "professional", projects: professionalProjects },
+        { label: "Additional Work", slug: "additional-work", projects: additionalProjects },
       ]}
+      galleryFolders={galleryFolders}
+      galleryImages={galleryImages}
     />
   );
 }
+  
