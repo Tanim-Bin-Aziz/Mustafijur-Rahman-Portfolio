@@ -65,13 +65,13 @@ export default function HomePage({
         <AuroraRingGallery items={items} />
 
         {projectGroups.some((g) => g.projects.length > 0) && (
-          <section className="relative py-20 px-6 bg-[#0d0d0a]">
-            <div className="max-w-6xl mx-auto">
+          <section className="relative py-20 px-6 md:px-10 bg-[#0d0d0a]">
+            <div className="max-w-7xl mx-auto">
               <div className="space-y-20">
                 {projectGroups
                   .filter((g) => g.projects.length > 0)
                   .map((group) => {
-                    const visible = visibleCounts[group.slug] ?? 4;
+                    const visible = visibleCounts[group.slug] ?? 12;
                     const shown = group.projects.slice(0, visible);
                     const hasMore = visible < group.projects.length;
                     return (
@@ -81,11 +81,11 @@ export default function HomePage({
                             {group.label}
                           </h2>
                         </div>
-                        <div className="flex flex-wrap justify-center gap-6">
+                        <div className="flex flex-wrap justify-center gap-x-8 gap-y-12 px-2">
                           {shown.map((p) => (
                             <div
                               key={p.id}
-                              className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)]"
+                              className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(25%-24px)]"
                             >
                               <ProjectCard
                                 title={p.title}
@@ -105,7 +105,7 @@ export default function HomePage({
                                 setVisibleCounts((prev) => ({
                                   ...prev,
                                   [group.slug]: Math.min(
-                                    (prev[group.slug] ?? 4) + 4,
+                                    (prev[group.slug] ?? 12) + 12,
                                     group.projects.length,
                                   ),
                                 }))
