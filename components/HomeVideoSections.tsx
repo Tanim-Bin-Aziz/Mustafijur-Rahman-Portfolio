@@ -33,11 +33,11 @@ export default function HomeVideoSections({
                   {section.label}
                 </h2>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="flex flex-wrap justify-center gap-4 px-2">
                 {section.videos.slice(0, MAX_TILES).map((video) => (
                   <div
                     key={video.id}
-                    className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black/40"
+                    className="relative aspect-video w-full sm:w-[calc(50%-8px)] lg:w-[calc(25%-12px)] overflow-hidden rounded-2xl border border-white/10 bg-black/40"
                   >
                     <video
                       src={video.src}
