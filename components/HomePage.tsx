@@ -18,6 +18,9 @@ import ImageDisplay from "@/components/ImageDisplay";
 import AuroraRingGallery from "@/components/AuroraRingGallery";
 import ProjectCard from "@/components/ProjectCard";
 import ImageGallerySystem from "@/components/ImageGallerySystem";
+import HomeVideoSections, {
+  type HomeVideoSection,
+} from "@/components/HomeVideoSections";
 import Image from "next/image";
 import type { ShowcaseRingItem } from "@/data/showcase";
 import type { Project } from "@/lib/projects";
@@ -35,6 +38,7 @@ export default function HomePage({
   projectGroups,
   galleryFolders,
   galleryImages,
+  videoSections,
 }: {
   items: ShowcaseRingItem[];
   certificates: Certificate[];
@@ -44,6 +48,7 @@ export default function HomePage({
   projectGroups: { label: string; slug: string; projects: Project[] }[];
   galleryFolders: GalleryFolder[];
   galleryImages: GalleryImage[];
+  videoSections: HomeVideoSection[];
 }) {
   const [loading, setLoading] = useState(true);
   const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
@@ -185,6 +190,7 @@ export default function HomePage({
             }))}
           />
         )}
+        <HomeVideoSections sections={videoSections} />
         <Certifications certificates={certificates} />
         <Testimonials reviews={reviews} />
         <Experience />
