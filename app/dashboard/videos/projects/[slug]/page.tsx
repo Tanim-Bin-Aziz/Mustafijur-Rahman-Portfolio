@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Plus, Trash2, Pencil, Film, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Film, Image as ImageIcon } from "lucide-react";
 import {
   getVideoProject,
   getVideoProjectVideos,
@@ -15,6 +15,7 @@ import {
 } from "../actions";
 import ConfirmSubmit from "@/components/dashboard/ConfirmSubmit";
 import DirectFileInput from "@/components/dashboard/DirectFileInput";
+import VideoEditToggle from "@/components/dashboard/VideoEditToggle";
 
 const fieldClass =
   "w-full rounded-lg border border-cream/10 bg-bg/60 px-3.5 py-2.5 text-sm text-cream placeholder:text-cream/30 outline-none transition-colors focus:border-[#8DB355]";
@@ -193,88 +194,99 @@ export default async function VideoProjectManagementPage({
                 />
               </div>
 
-              <form
-                action={updateVideoProjectVideoAction}
-                className="space-y-3 p-4"
-              >
-                <input type="hidden" name="id" value={video.id} />
-                <input type="hidden" name="projectSlug" value={project.slug} />
-                <input
-                  type="hidden"
-                  name="currentVideoUrl"
-                  value={video.videoUrl}
-                />
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label
-                      className={labelClass}
-                      htmlFor={`vp-edit-title-${video.id}`}
-                    >
-                      Title
-                    </label>
-                    <input
-                      id={`vp-edit-title-${video.id}`}
-                      name="title"
-                      defaultValue={video.title}
-                      className={fieldClass}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={labelClass}
-                      htmlFor={`vp-edit-date-${video.id}`}
-                    >
-                      Date
-                    </label>
-                    <input
-                      id={`vp-edit-date-${video.id}`}
-                      name="videoDate"
-                      type="date"
-                      defaultValue={video.videoDate}
-                      className={fieldClass}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <span className={labelClass}>
-                    New video (leave empty to keep current)
-                  </span>
-                  <DirectFileInput
-                    urlName="videoUrl"
-                    accept="video/*"
-                    kind="video"
-                    folder={`video-projects/${project.slug}`}
-                    label="Choose new video"
-                    icon={<Film size={16} />}
-                    placeholder="https://.../video.mp4"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end pt-1">
-                  <button
-                    type="submit"
-                    className="rounded-full bg-[#8DB355] px-4 py-1.5 text-xs font-semibold text-bg transition-colors hover:bg-[#9cc163]"
+              <VideoEditToggle
+                editForm={
+                  <form
+                    action={updateVideoProjectVideoAction}
+                    className="space-y-3"
                   >
-                    Save
-                  </button>
-                </div>
-              </form>
+                    <input type="hidden" name="id" value={video.id} />
+                    <input
+                      type="hidden"
+                      name="projectSlug"
+                      value={project.slug}
+                    />
+                    <input
+                      type="hidden"
+                      name="currentVideoUrl"
+                      value={video.videoUrl}
+                    />
 
-              <div className="border-t border-cream/10 px-4 py-3">
-                <form action={deleteVideoProjectVideoAction}>
-                  <input type="hidden" name="id" value={video.id} />
-                  <input type="hidden" name="projectSlug" value={project.slug} />
-                  <ConfirmSubmit
-                    message={`Delete “${video.title}”? This cannot be undone.`}
-                    title="Delete video"
-                    className="rounded-full border border-cream/10 px-4 py-1.5 text-xs text-cream/50 transition-colors hover:border-red-500/40 hover:text-red-300"
-                  >
-                    Delete
-                  </ConfirmSubmit>
-                </form>
-              </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <label
+                          className={labelClass}
+                          htmlFor={`vp-edit-title-${video.id}`}
+                        >
+                          Title
+                        </label>
+                        <input
+                          id={`vp-edit-title-${video.id}`}
+                          name="title"
+                          defaultValue={video.title}
+                          className={fieldClass}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          className={labelClass}
+                          htmlFor={`vp-edit-date-${video.id}`}
+                        >
+                          Date
+                        </label>
+                        <input
+                          id={`vp-edit-date-${video.id}`}
+                          name="videoDate"
+                          type="date"
+                          defaultValue={video.videoDate}
+                          className={fieldClass}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className={labelClass}>
+                        New video (leave empty to keep current)
+                      </span>
+                      <DirectFileInput
+                        urlName="videoUrl"
+                        accept="video/*"
+                        kind="video"
+                        folder={`video-projects/${project.slug}`}
+                        label="Choose new video"
+                        icon={<Film size={16} />}
+                        placeholder="https://.../video.mp4"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-end pt-1">
+                      <button
+                        type="submit"
+                        className="rounded-full bg-[#8DB355] px-4 py-1.5 text-xs font-semibold text-bg transition-colors hover:bg-[#9cc163]"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </form>
+                }
+                deleteForm={
+                  <form action={deleteVideoProjectVideoAction}>
+                    <input type="hidden" name="id" value={video.id} />
+                    <input
+                      type="hidden"
+                      name="projectSlug"
+                      value={project.slug}
+                    />
+                    <ConfirmSubmit
+                      message={`Delete “${video.title}”? This cannot be undone.`}
+                      title="Delete video"
+                      className="rounded-full border border-cream/10 px-4 py-1.5 text-xs text-cream/50 transition-colors hover:border-red-500/40 hover:text-red-300"
+                    >
+                      Delete
+                    </ConfirmSubmit>
+                  </form>
+                }
+              />
             </div>
           ))}
         </div>
