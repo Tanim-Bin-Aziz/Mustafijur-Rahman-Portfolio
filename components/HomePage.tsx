@@ -21,6 +21,7 @@ import ImageGallerySystem from "@/components/ImageGallerySystem";
 import HomeVideoSections, {
   type HomeVideoSection,
 } from "@/components/HomeVideoSections";
+import HomeVideoMerge from "@/components/HomeVideoMerge";
 import Image from "next/image";
 import type { ShowcaseRingItem } from "@/data/showcase";
 import type { Project } from "@/lib/projects";
@@ -54,6 +55,18 @@ export default function HomePage({
   const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
   const [galleryOpen, setGalleryOpen] = useState(false);
 
+  const mergeVideoSlugs = [
+    "final-collection",
+    "drapping-final-dress",
+    "studio-collection",
+  ];
+  const mergeVideoSections = videoSections.filter((section) =>
+    mergeVideoSlugs.includes(section.slug),
+  );
+  const remainingVideoSections = videoSections.filter(
+    (section) => !mergeVideoSlugs.includes(section.slug),
+  );
+
   return (
     <>
       <AnimatePresence mode="wait">
@@ -68,6 +81,14 @@ export default function HomePage({
         {/* <Services /> */}
         {/* <Projects /> */}
         <AuroraRingGallery items={items} />
+        {showcaseVideos.length > 0 && (
+          <PixelWarpGallery
+            items={showcaseVideos.map((card) => ({
+              label: card.label || undefined,
+              video: card.videoUrl,
+            }))}
+          />
+        )}
 
         {projectGroups.some((g) => g.projects.length > 0) && (
           <section className="relative py-20 px-6 md:px-10 bg-[#0d0d0a]">
@@ -172,6 +193,7 @@ export default function HomePage({
             </div>
           </section>
         )}
+        <HomeVideoMerge sections={mergeVideoSections} />
         {/* <ImageDisplay
           slides={[
             { src: "/images/img1.jpg", title: "Look 01" },
@@ -182,15 +204,7 @@ export default function HomePage({
           ]}
           autoplay
         /> */}
-        {showcaseVideos.length > 0 && (
-          <PixelWarpGallery
-            items={showcaseVideos.map((card) => ({
-              label: card.label || undefined,
-              video: card.videoUrl,
-            }))}
-          />
-        )}
-        <HomeVideoSections sections={videoSections} />
+        <HomeVideoSections sections={remainingVideoSections} />
         <Certifications certificates={certificates} />
         <Testimonials reviews={reviews} />
         <Experience />

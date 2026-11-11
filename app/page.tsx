@@ -52,7 +52,7 @@ export default async function Home() {
       })),
     },
     {
-      label: "Additional Work",
+      label: "Additional Videos",
       slug: "additional-work",
       videos: additionalWorkVideos.map((video) => ({
         id: video.id,
