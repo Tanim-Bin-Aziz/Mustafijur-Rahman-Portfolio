@@ -191,6 +191,13 @@ export default async function VideoProjectManagementPage({
                 />
               </div>
 
+              <div className="px-4 pt-3">
+                <p className="truncate text-sm text-cream">{video.title}</p>
+                <p className="mt-0.5 truncate font-mono text-[10px] text-cream/35">
+                  {video.videoDate}
+                </p>
+              </div>
+
               <VideoEditToggle
                 editForm={
                   <form

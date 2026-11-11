@@ -49,6 +49,7 @@ import Clo3dFolderAdd from "@/components/dashboard/Clo3dFolderAdd";
 import DirectFileInput from "@/components/dashboard/DirectFileInput";
 import UploadSubmit, { UploadProgress } from "@/components/dashboard/UploadSubmit";
 import ShowcaseReorder from "@/components/dashboard/ShowcaseReorder";
+import VideoEditToggle from "@/components/dashboard/VideoEditToggle";
 
 const TABS = [
   { id: "clo3d", label: "CLO 3D", icon: Clapperboard },
@@ -869,85 +870,95 @@ function AdditionalWorkTab({ videos }: { videos: AdditionalWorkVideo[] }) {
                 />
               </div>
 
-              <form
-                action={updateAdditionalWorkVideoAction}
-                className="space-y-3 p-4"
-              >
-                <input type="hidden" name="id" value={video.id} />
-                <input
-                  type="hidden"
-                  name="currentVideoUrl"
-                  value={video.videoUrl}
-                />
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label
-                      className={labelClass}
-                      htmlFor={`aw-edit-title-${video.id}`}
-                    >
-                      Title
-                    </label>
-                    <input
-                      id={`aw-edit-title-${video.id}`}
-                      name="title"
-                      defaultValue={video.title}
-                      className={fieldClass}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={labelClass}
-                      htmlFor={`aw-edit-date-${video.id}`}
-                    >
-                      Date
-                    </label>
-                    <input
-                      id={`aw-edit-date-${video.id}`}
-                      name="videoDate"
-                      type="date"
-                      defaultValue={video.videoDate}
-                      className={fieldClass}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <span className={labelClass}>
-                    New video (leave empty to keep current)
-                  </span>
-                  <DirectFileInput
-                    urlName="videoUrl"
-                    accept="video/*"
-                    kind="video"
-                    folder="additional-work"
-                    label="Choose new video"
-                    icon={<Film size={16} />}
-                    placeholder="https://.../video.mp4"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end pt-1">
-                  <UploadSubmit
-                    idleLabel="Save"
-                    pendingLabel="Uploading…"
-                    className="rounded-full bg-[#8DB355] px-4 py-1.5 text-xs font-semibold text-bg transition-colors hover:bg-[#9cc163]"
-                  />
-                </div>
-              </form>
-
-              <div className="border-t border-cream/10 px-4 py-3">
-                <form action={removeAdditionalWorkVideo}>
-                  <input type="hidden" name="id" value={video.id} />
-                  <ConfirmSubmit
-                    message={`Delete “${video.title}”? This cannot be undone.`}
-                    title="Delete video"
-                    className="rounded-full border border-cream/10 px-4 py-1.5 text-xs text-cream/50 transition-colors hover:border-red-500/40 hover:text-red-300"
-                  >
-                    Delete
-                  </ConfirmSubmit>
-                </form>
+              <div className="px-4 pt-3">
+                <p className="truncate text-sm text-cream">{video.title}</p>
+                <p className="mt-0.5 truncate font-mono text-[10px] text-cream/35">
+                  {video.videoDate}
+                </p>
               </div>
+
+              <VideoEditToggle
+                editForm={
+                  <form
+                    action={updateAdditionalWorkVideoAction}
+                    className="space-y-3"
+                  >
+                    <input type="hidden" name="id" value={video.id} />
+                    <input
+                      type="hidden"
+                      name="currentVideoUrl"
+                      value={video.videoUrl}
+                    />
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <label
+                          className={labelClass}
+                          htmlFor={`aw-edit-title-${video.id}`}
+                        >
+                          Title
+                        </label>
+                        <input
+                          id={`aw-edit-title-${video.id}`}
+                          name="title"
+                          defaultValue={video.title}
+                          className={fieldClass}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          className={labelClass}
+                          htmlFor={`aw-edit-date-${video.id}`}
+                        >
+                          Date
+                        </label>
+                        <input
+                          id={`aw-edit-date-${video.id}`}
+                          name="videoDate"
+                          type="date"
+                          defaultValue={video.videoDate}
+                          className={fieldClass}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className={labelClass}>
+                        New video (leave empty to keep current)
+                      </span>
+                      <DirectFileInput
+                        urlName="videoUrl"
+                        accept="video/*"
+                        kind="video"
+                        folder="additional-work"
+                        label="Choose new video"
+                        icon={<Film size={16} />}
+                        placeholder="https://.../video.mp4"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-end pt-1">
+                      <UploadSubmit
+                        idleLabel="Save"
+                        pendingLabel="Uploading…"
+                        className="rounded-full bg-[#8DB355] px-4 py-1.5 text-xs font-semibold text-bg transition-colors hover:bg-[#9cc163]"
+                      />
+                    </div>
+                  </form>
+                }
+                deleteForm={
+                  <form action={removeAdditionalWorkVideo}>
+                    <input type="hidden" name="id" value={video.id} />
+                    <ConfirmSubmit
+                      message={`Delete “${video.title}”? This cannot be undone.`}
+                      title="Delete video"
+                      className="rounded-full border border-cream/10 px-4 py-1.5 text-xs text-cream/50 transition-colors hover:border-red-500/40 hover:text-red-300"
+                    >
+                      Delete
+                    </ConfirmSubmit>
+                  </form>
+                }
+              />
             </div>
           ))}
         </div>
