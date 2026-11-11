@@ -7,6 +7,7 @@ import { saveAboutCard } from "./actions";
 import { removeCvDocument } from "./cv/actions";
 import ConfirmSubmit from "@/components/dashboard/ConfirmSubmit";
 import DirectFileInput from "@/components/dashboard/DirectFileInput";
+import UploadSubmit from "@/components/dashboard/UploadSubmit";
 
 export default async function AboutCardsPage({
   searchParams,
@@ -244,12 +245,10 @@ function AboutCardForm({
             <ArrowUpRight size={12} />
           </Link>
 
-          <button
-            type="submit"
+          <UploadSubmit
+            idleLabel="Save Changes"
             className="rounded-full bg-[#8DB355] px-5 py-2 text-sm font-semibold text-bg transition-colors hover:bg-[#9cc163]"
-          >
-            Save Changes
-          </button>
+          />
         </div>
       </div>
     </form>

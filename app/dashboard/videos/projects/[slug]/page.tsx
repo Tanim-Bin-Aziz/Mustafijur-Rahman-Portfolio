@@ -15,6 +15,7 @@ import {
 } from "../actions";
 import ConfirmSubmit from "@/components/dashboard/ConfirmSubmit";
 import DirectFileInput from "@/components/dashboard/DirectFileInput";
+import UploadSubmit from "@/components/dashboard/UploadSubmit";
 import VideoEditToggle from "@/components/dashboard/VideoEditToggle";
 
 const fieldClass =
@@ -96,12 +97,10 @@ export default async function VideoProjectManagementPage({
           label="Choose card image"
           icon={<ImageIcon size={16} />}
         />
-        <button
-          type="submit"
+        <UploadSubmit
+          idleLabel="Save card image"
           className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#8DB355] px-5 py-2 text-sm font-semibold text-bg transition-colors hover:bg-[#9cc163]"
-        >
-          Save card image
-        </button>
+        />
       </form>
 
       {saved && (
@@ -164,13 +163,11 @@ export default async function VideoProjectManagementPage({
           />
         </div>
 
-        <button
-          type="submit"
+        <UploadSubmit
+          idleLabel="Add video"
+          icon={<Plus size={15} />}
           className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#8DB355] px-5 py-2 text-sm font-semibold text-bg transition-colors hover:bg-[#9cc163]"
-        >
-          <Plus size={15} />
-          Add video
-        </button>
+        />
       </form>
 
       {/* Existing videos */}
@@ -260,12 +257,10 @@ export default async function VideoProjectManagementPage({
                     </div>
 
                     <div className="flex items-center justify-end pt-1">
-                      <button
-                        type="submit"
+                      <UploadSubmit
+                        idleLabel="Save"
                         className="rounded-full bg-[#8DB355] px-4 py-1.5 text-xs font-semibold text-bg transition-colors hover:bg-[#9cc163]"
-                      >
-                        Save
-                      </button>
+                      />
                     </div>
                   </form>
                 }

@@ -50,6 +50,7 @@ export default function DirectFileInput({
   const [url, setUrl] = useState(existingUrl);
   const [fileName, setFileName] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   function applyUrl(next: string) {
@@ -69,6 +70,7 @@ export default function DirectFileInput({
 
     setError(null);
     setUploading(true);
+    setProgress(0);
 
     try {
       applyUrl(
@@ -76,6 +78,7 @@ export default function DirectFileInput({
           file,
           typeof kind === "function" ? kind(file) : kind,
           folder,
+          setProgress,
         ),
       );
       setFileName(file.name);
@@ -87,6 +90,7 @@ export default function DirectFileInput({
       );
     } finally {
       setUploading(false);
+      setProgress(0);
     }
   }
 
@@ -99,7 +103,9 @@ export default function DirectFileInput({
         {uploading ? (
           <>
             <Loader2 size={16} className="animate-spin text-[#8DB355]" />
-            <span className="truncate text-cream/70">Uploading…</span>
+            <span className="truncate text-cream/70">
+              Uploading… {progress}%
+            </span>
           </>
         ) : fileName ? (
           <>
@@ -113,6 +119,24 @@ export default function DirectFileInput({
           </>
         )}
       </label>
+
+      {uploading && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mt-2 flex items-center gap-3"
+        >
+          <span className="relative h-1 flex-1 overflow-hidden rounded-full bg-cream/10">
+            <span
+              className="absolute inset-y-0 left-0 rounded-full bg-[#8DB355] transition-[width] duration-150 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </span>
+          <span className="shrink-0 font-mono text-[10px] tabular-nums text-cream/50">
+            {progress}%
+          </span>
+        </div>
+      )}
 
       <input
         ref={inputRef}

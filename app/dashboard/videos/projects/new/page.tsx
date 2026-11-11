@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Image as ImageIcon } from "lucide-react";
 import { createVideoProjectAction } from "../actions";
 import DirectFileInput from "@/components/dashboard/DirectFileInput";
+import UploadSubmit from "@/components/dashboard/UploadSubmit";
 
 export default async function NewVideoProjectPage({
   searchParams,
@@ -65,12 +66,10 @@ export default async function NewVideoProjectPage({
           />
         </div>
 
-        <button
-          type="submit"
+        <UploadSubmit
+          idleLabel="Create project"
           className="inline-flex items-center gap-2 rounded-full bg-[#8DB355] px-6 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-[#9cc163]"
-        >
-          Create project
-        </button>
+        />
       </form>
     </div>
   );

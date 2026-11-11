@@ -12,6 +12,7 @@ export async function uploadFileDirect(
   file: File,
   kind: R2Kind,
   folder: string,
+  onProgress?: (percent: number) => void,
 ): Promise<string> {
   const ticket = await createUploadUrl({
     kind,
@@ -26,26 +27,42 @@ export async function uploadFileDirect(
 
   const contentType = file.type || "application/octet-stream";
 
-  let response: Response;
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", ticket.uploadUrl);
+    // Must match the ContentType the URL was signed with.
+    xhr.setRequestHeader("Content-Type", contentType);
 
-  try {
-    response = await fetch(ticket.uploadUrl, {
-      method: "PUT",
-      // Must match the ContentType the URL was signed with.
-      headers: { "Content-Type": contentType },
-      body: file,
-    });
-  } catch {
-    throw new Error(
-      "The browser blocked this upload. Check the R2 bucket CORS policy allows PUT from this site.",
-    );
-  }
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        onProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
 
-  if (!response.ok) {
-    throw new Error(
-      `R2 rejected the upload (${response.status}). Check the bucket's CORS policy and API token permissions.`,
-    );
-  }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        onProgress?.(100);
+        resolve();
+        return;
+      }
+      reject(
+        new Error(
+          `R2 rejected the upload (${xhr.status}). Check the bucket's CORS policy and API token permissions.`,
+        ),
+      );
+    };
+
+    xhr.onerror = () =>
+      reject(
+        new Error(
+          "The browser blocked this upload. Check the R2 bucket CORS policy allows PUT from this site.",
+        ),
+      );
+
+    xhr.onabort = () => reject(new Error("Upload cancelled."));
+
+    xhr.send(file);
+  });
 
   return ticket.publicUrl;
 }
