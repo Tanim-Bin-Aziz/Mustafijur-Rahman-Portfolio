@@ -153,6 +153,31 @@ export async function getVideoProjectVideos(
   }));
 }
 
+export async function getAllVideoProjectVideos(): Promise<
+  VideoProjectVideo[]
+> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("video_project_videos")
+    .select("id, project_id, title, video_url, video_date, sort_order")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getAllVideoProjectVideos failed:", error.message);
+    return [];
+  }
+
+  return ((data ?? []) as VideoProjectVideoRow[]).map((row) => ({
+    id: row.id,
+    projectId: row.project_id,
+    title: row.title,
+    videoUrl: row.video_url,
+    videoDate: row.video_date,
+    sortOrder: row.sort_order ?? 0,
+  }));
+}
+
 async function buildUniqueSlug(
   supabase: Awaited<ReturnType<typeof createClient>>,
   input: string,

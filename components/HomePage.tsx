@@ -21,7 +21,9 @@ import ImageGallerySystem from "@/components/ImageGallerySystem";
 import HomeVideoSections, {
   type HomeVideoSection,
 } from "@/components/HomeVideoSections";
-import HomeVideoMerge from "@/components/HomeVideoMerge";
+import HomeVideoMerge, {
+  type VideoCardItem,
+} from "@/components/HomeVideoMerge";
 import Image from "next/image";
 import type { ShowcaseRingItem } from "@/data/showcase";
 import type { Project } from "@/lib/projects";
@@ -39,6 +41,7 @@ export default function HomePage({
   projectGroups,
   galleryFolders,
   galleryImages,
+  videoCards,
   videoSections,
 }: {
   items: ShowcaseRingItem[];
@@ -49,23 +52,12 @@ export default function HomePage({
   projectGroups: { label: string; slug: string; projects: Project[] }[];
   galleryFolders: GalleryFolder[];
   galleryImages: GalleryImage[];
+  videoCards: VideoCardItem[];
   videoSections: HomeVideoSection[];
 }) {
   const [loading, setLoading] = useState(true);
   const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
   const [galleryOpen, setGalleryOpen] = useState(false);
-
-  const mergeVideoSlugs = [
-    "final-collection",
-    "drapping-final-dress",
-    "studio-collection",
-  ];
-  const mergeVideoSections = videoSections.filter((section) =>
-    mergeVideoSlugs.includes(section.slug),
-  );
-  const remainingVideoSections = videoSections.filter(
-    (section) => !mergeVideoSlugs.includes(section.slug),
-  );
 
   return (
     <>
@@ -193,7 +185,7 @@ export default function HomePage({
             </div>
           </section>
         )}
-        <HomeVideoMerge sections={mergeVideoSections} />
+        <HomeVideoMerge videos={videoCards} />
         {/* <ImageDisplay
           slides={[
             { src: "/images/img1.jpg", title: "Look 01" },
@@ -204,7 +196,7 @@ export default function HomePage({
           ]}
           autoplay
         /> */}
-        <HomeVideoSections sections={remainingVideoSections} />
+        <HomeVideoSections sections={videoSections} />
         <Certifications certificates={certificates} />
         <Testimonials reviews={reviews} />
         <Experience />
