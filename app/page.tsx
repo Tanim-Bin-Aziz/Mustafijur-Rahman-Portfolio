@@ -94,12 +94,14 @@ export default async function Home() {
         id: video.id,
         src: video.src,
         title: video.title,
+        caption: video.title,
       })) ?? [];
 
   const projectCards: VideoCardItem[] = videoProjectVideos.map((video) => ({
     id: video.id,
     src: video.videoUrl,
     title: video.title,
+    caption: video.title,
   }));
 
   const videoCards: VideoCardItem[] = [
